@@ -1,9 +1,17 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { ShopifyService } from './shopify.service';
 import { CreateShopifyDto } from './dto/create-shopify.dto';
 import { UpdateShopifyDto } from './dto/update-shopify.dto';
 
-@Controller('shopify')
+@Controller()
 export class ShopifyController {
   constructor(private readonly shopifyService: ShopifyService) {}
 

@@ -8,14 +8,17 @@ import { UpdateInventoryInput } from './dto/update-inventory.input';
 import Inventory from './entities/inventory.modal';
 import { ProductVariant } from './entities/product.entity';
 import { StoresService } from 'src/stores/stores.service';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+// import { ShopifyService } from 'src/shopify/shopify/shopify.service';
 import { HttpService } from '@nestjs/axios';
 import { log } from 'console';
+import readJsonLines from 'read-json-lines-sync';
 import { RecordType } from 'src/utils/constant';
 import { Document } from 'flexsearch';
 import * as fs from 'fs';
 import { CollectionUpdateEnum } from 'src/stores/entities/store.entity';
 import { DropsCategoryService } from 'src/drops-category/drops-category.service';
+import { PaginationService } from 'src/utils/pagination.service';
+import { ConfigService } from '@nestjs/config';
 
 const options = {
   tokenize: function (str) {
@@ -63,6 +66,8 @@ export class InventoryService {
     @Inject(forwardRef(() => DropsCategoryService))
     private dropsCategoryService: DropsCategoryService,
     private httpService: HttpService,
+    private paginateService: PaginationService,
+    private configService: ConfigService,
   ) {
     // this.inventoryManager = getMongoManager();
     // this.inventoryManager = getMongoManager();
@@ -94,21 +99,21 @@ export class InventoryService {
   async update(updateInvenotryInput: UpdateInventoryInput) {
     const { id } = updateInvenotryInput;
     // await this.remove(id);
-    return await this.inventoryRepository.update({ id }, updateInvenotryInput);
+    // return await this.inventoryRepository.update({ id }, updateInvenotryInput);
     // return await this.inventoryRepository.save(updateInvenotryInput);
-    // const manager = getMongoManager();
-    // try {
-    //   return await manager.updateOne(
-    //     Inventory,
-    //     { id },
-    //     { $set: { ...updateInvenotryInput } },
-    //     {
-    //       upsert: true,
-    //     },
-    //   );
-    // } catch (err) {
-    //   console.log(err);
-    // }
+    const manager = getMongoManager();
+    try {
+      return await manager.updateOne(
+        Inventory,
+        { id },
+        { $set: { ...updateInvenotryInput } },
+        {
+          upsert: true,
+        },
+      );
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   async updateInventory(id: string, dif: number, field: string) {
@@ -175,6 +180,7 @@ export class InventoryService {
           $or: [
             { recordType: 'ProductVariant' },
             { recordType: 'ProductImage' },
+            { recordType: 'ProductVideo' },
           ],
         },
       ],
@@ -407,6 +413,19 @@ export class InventoryService {
       {
         $lookup: {
           from: 'store',
+          localField: 'shop',
+          foreignField: 'shop',
+          as: 'store',
+        },
+      },
+      {
+        $unwind: {
+          path: '$store',
+        },
+      },
+      {
+        $lookup: {
+          from: 'store',
           localField: 'id',
           foreignField: 'collectionsToUpdate.collectionId',
           as: 'storeCollections',
@@ -435,7 +454,9 @@ export class InventoryService {
       },
       {
         $group: {
-          _id: '$id',
+          _id: {
+            collectionId: '$id',
+          },
           collectionTitle: {
             $first: '$collectionTitle',
           },
@@ -448,19 +469,42 @@ export class InventoryService {
           isSynced: {
             $first: '$isSynced',
           },
+          store: {
+            $first: '$store',
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          collections: {
+            $push: {
+              collectionTitle: '$collectionTitle',
+              collectionId: '$collectionId',
+              productCount: '$productCount',
+              isSynced: '$isSynced',
+            },
+          },
+          collectionsToUpdate: {
+            $first: '$store.collectionsToUpdate',
+          },
+        },
+      },
+      {
+        $match: {
+          'collections.collectionId': { $exists: true },
         },
       },
       {
         $project: {
-          collectionTitle: 1,
-          collectionId: 1,
-          productCount: 1,
-          isSynced: 1,
+          collections: 1,
+          collectionsToUpdate: {
+            $ifNull: ['$collectionsToUpdate', []],
+          },
           _id: 0,
         },
       },
     ];
-
     return await manager.aggregate(Inventory, agg).toArray();
   }
 
@@ -640,8 +684,132 @@ export class InventoryService {
           as: 'images',
         },
       },
+      {
+        $lookup: {
+          from: 'inventory',
+          let: {
+            pid: '$id',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ['$$pid', '$parentId'],
+                    },
+                    {
+                      $eq: ['$recordType', 'ProductVideo'],
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'videos',
+        },
+      },
     ];
     const res = await manager.aggregate(Inventory, agg).toArray();
+    // console.log(
+    //   '🚀 ~ file: inventory.service.ts ~ line 329 ~ InventoryService ~ findProductById ~ res',
+    //   res[0].length,
+    //   res[0],
+    // );
+    // console.log('🎈 res[0]', res[0]);
+    return res.length && res[0].status !== 'ACTIVE'
+      ? { ...res[0], outofstock: true }
+      : res[0];
+
+    // return await manager.aggregate(Inventory, agg).toArray();
+  }
+
+  async findPlatformFeeById() {
+    const id = this.configService.get('PLATFORM_FEE_ID');
+    // const manager = getMongoManager();
+    const agg = [
+      {
+        $match: {
+          id,
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          let: {
+            pid: '$id',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ['$$pid', '$parentId'],
+                    },
+                    {
+                      $eq: ['$recordType', 'ProductVariant'],
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'variants',
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          let: {
+            pid: '$id',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ['$$pid', '$parentId'],
+                    },
+                    {
+                      $eq: ['$recordType', 'ProductImage'],
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'images',
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          let: {
+            pid: '$id',
+          },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $eq: ['$$pid', '$parentId'],
+                    },
+                    {
+                      $eq: ['$recordType', 'ProductVideo'],
+                    },
+                  ],
+                },
+              },
+            },
+          ],
+          as: 'videos',
+        },
+      },
+    ];
+    const res = await this.inventoryRepository.aggregate(agg).toArray();
     // console.log(
     //   '🚀 ~ file: inventory.service.ts ~ line 329 ~ InventoryService ~ findProductById ~ res',
     //   res[0].length,
@@ -923,24 +1091,25 @@ export class InventoryService {
   // async runSyncCollectionCron(store: any) {
   //   try {
   //     const { shop, accessToken, collectionsToUpdate, id } = store;
-  //     const client = await this.shopifyService.client(shop, accessToken);
+  //     if (store?.drops && store?.drops?.status == 'Active') {
+  //       const client = await this.shopifyService.client(shop, accessToken);
 
-  //     if (!collectionsToUpdate.length) {
-  //       log('No collections to update');
-  //     }
+  //       if (!collectionsToUpdate.length) {
+  //         log('No collections to update');
+  //       }
 
-  //     const queryString = collectionsToUpdate
-  //       .map((collection) => {
-  //         if (collection.isSynced === false) {
-  //           return `(title:${collection.collectionTitle})`;
-  //         }
-  //       })
-  //       .join(' OR ');
+  //       const queryString = collectionsToUpdate
+  //         .map((collection) => {
+  //           if (collection.isSynced === false) {
+  //             return `(title:${collection.collectionTitle})`;
+  //           }
+  //         })
+  //         .join(' OR ');
 
-  //     await client
-  //       .query({
-  //         data: {
-  //           query: `mutation {
+  //       await client
+  //         .query({
+  //           data: {
+  //             query: `mutation {
   //   bulkOperationRunQuery(
   //     query:"""
   //     {
@@ -988,58 +1157,59 @@ export class InventoryService {
   //     }
   //   }
   // }`,
-  //         },
-  //       })
-  //       .then((res) => {
-  //         const bulkOperationId =
-  //           res.body['data']['bulkOperationRunQuery']['bulkOperation']['id'];
-  //         Logger.log(
-  //           `collection to update bulk register with id - ${bulkOperationId}`,
-  //           'COLLECTIONTOUPDATBULK',
-  //           true,
-  //         );
-  //       });
+  //           },
+  //         })
+  //         .then((res) => {
+  //           const bulkOperationId =
+  //             res.body['data']['bulkOperationRunQuery']['bulkOperation']['id'];
+  //           Logger.log(
+  //             `collection to update bulk register with id - ${bulkOperationId}`,
+  //             'COLLECTIONTOUPDATBULK',
+  //             true,
+  //           );
+  //         });
+  //     }
   //   } catch (err) {
   //     Logger.error(err, 'SYNC_COLLECTION_SERVICE');
   //   }
   // }
 
-  // async pollIt(client, id, shop) {
-  //   let poll;
-  //   const timer = setInterval(async () => {
-  //     poll = await client.query({
-  //       data: {
-  //         query: `query {
-  //             currentBulkOperation {
-  //               id
-  //               status
-  //               errorCode
-  //               createdAt
-  //               completedAt
-  //               objectCount
-  //               fileSize
-  //               url
-  //               partialDataUrl
-  //             }
-  //           }`,
-  //       },
-  //     });
-  //     if (poll.body['data']['currentBulkOperation']['status'] === 'COMPLETED') {
-  //       clearInterval(timer);
-  //       const url = poll.body['data']['currentBulkOperation'].url;
-  //       this.httpService.get(url).subscribe(async (res) => {
-  //         const checkCollection = res.data?.length
-  //           ? readJsonLines(res.data)
-  //           : [];
-  //         if (checkCollection.length && checkCollection[0].productsCount > 0) {
-  //           this.getProducts(checkCollection, id, shop);
-  //         } else {
-  //           Logger.log(`No products found`, 'SYNC_COLLECTION_SERVICE', true);
-  //         }
-  //       });
-  //     }
-  //   }, 5000);
-  // }
+  async pollIt(client, id, shop) {
+    let poll;
+    const timer = setInterval(async () => {
+      poll = await client.query({
+        data: {
+          query: `query {
+              currentBulkOperation {
+                id
+                status
+                errorCode
+                createdAt
+                completedAt
+                objectCount
+                fileSize
+                url
+                partialDataUrl
+              }
+            }`,
+        },
+      });
+      if (poll.body['data']['currentBulkOperation']['status'] === 'COMPLETED') {
+        clearInterval(timer);
+        const url = poll.body['data']['currentBulkOperation'].url;
+        this.httpService.get(url).subscribe(async (res) => {
+          const checkCollection = res.data?.length
+            ? readJsonLines(res.data)
+            : [];
+          if (checkCollection.length && checkCollection[0].productsCount > 0) {
+            this.getProducts(checkCollection, id, shop);
+          } else {
+            Logger.log(`No products found`, 'SYNC_COLLECTION_SERVICE', true);
+          }
+        });
+      }
+    }, 5000);
+  }
 
   async updateCollection(products, id, shop) {
     console.log(products);
@@ -1222,24 +1392,17 @@ export class InventoryService {
     let index = new Document(options);
     index = this.retrieveIndex(shop, index);
     const result = index.search(searchTerm, 0, { suggest: true });
+    console.log('searchTerm', searchTerm);
     console.log(
       '🚀 ~ file: inventory.service.ts:789 ~ InventoryService ~ index.search ~ result:',
       result,
     );
     const filterProducts: any = [];
-    result?.forEach(async (search: any) => {
+    let collectionIds: any = null;
+    result?.forEach((search: any) => {
       const fieldType = search.field;
       if (fieldType === 'collection') {
-        const collectionProducts = await this.getProductsByCollectionIDs(
-          shop,
-          search.result,
-          false,
-        );
-        collectionProducts.forEach((collection: any) => {
-          if (!filterProducts.includes(collection.id)) {
-            filterProducts.push(collection.id);
-          }
-        });
+        collectionIds = search.result;
       } else {
         search.result.forEach((productId: any) => {
           if (!filterProducts.includes(productId)) {
@@ -1248,7 +1411,18 @@ export class InventoryService {
         });
       }
     });
-    // console.log('filterProductsfilterProducts', filterProducts);
+    if (collectionIds !== null) {
+      const collectionProducts = await this.getProductsByCollectionIDs(
+        shop,
+        collectionIds,
+        false,
+      );
+      collectionProducts.forEach((product: any) => {
+        if (!filterProducts.includes(product.id)) {
+          filterProducts.push(product.id);
+        }
+      });
+    }
     return filterProducts;
   }
 
@@ -1268,4 +1442,91 @@ export class InventoryService {
     }
     return index;
   };
+
+  async getPaginatedProductsByCollectionIDs({ pagination, collection_id }) {
+    try {
+      const manager = getMongoManager();
+      const { skip, take } = pagination;
+      const agg: any = [
+        {
+          $match: {
+            id: collection_id,
+          },
+        },
+        // {
+        //   $sort: {
+        //     _id: 1,
+        //   },
+        // },
+        {
+          $lookup: {
+            from: 'inventory',
+            localField: 'parentId',
+            foreignField: 'id',
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      {
+                        $ne: ['$publishedAt', null],
+                      },
+                      {
+                        $eq: ['$status', 'ACTIVE'],
+                      },
+                    ],
+                  },
+                },
+              },
+            ],
+            as: 'products',
+          },
+        },
+        {
+          $unwind: {
+            path: '$products',
+          },
+        },
+        {
+          $replaceRoot: {
+            newRoot: '$products',
+          },
+        },
+        {
+          $skip: skip,
+        },
+        {
+          $limit: take,
+        },
+      ];
+      const result = await manager.aggregate(Inventory, agg).toArray();
+      agg.pop();
+      agg.pop();
+      agg.push({
+        $count: 'total',
+      });
+      const prodcount = await manager.aggregate(Inventory, agg).toArray();
+      const total = prodcount[0]?.total ?? 0;
+      Logger.log(
+        `Products paginated for collection (${collection_id}) `,
+        'PAGINATE_PRODUCTS',
+        true,
+      );
+      return {
+        result,
+        pageInfo: this.paginateService.paginate(result, total, take, skip),
+      };
+    } catch (err) {
+      Logger.error(
+        `Failed to paginate products for collection (${collection_id}) : ${err}`,
+        'PAGINATE_PRODUCTS',
+        true,
+      );
+    }
+    // console.log(
+    //   '🚀 ~ file: inventory.service.ts:1328 ~ InventoryService ~ getPaginatedProductsByCollectionIDs ~ res:',
+    //   res[0],
+    // );
+    // return res;
+  }
 }

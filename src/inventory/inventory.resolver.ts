@@ -14,12 +14,16 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import { Public } from 'src/auth/public.decorator';
 import { StoresService } from 'src/stores/stores.service';
 import { CollectionUpdateEnum } from 'src/stores/entities/store.entity';
+// import { GetLocationsInput } from './dto/create-inventory.input';
+// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+// import { ProductsPaginated } from './entities/products-paginated.entity';
+import { ProductsPaginatedArgs } from './dto/products-paginated.input';
 @UseGuards(AuthGuard)
 @Resolver(() => Inventory)
 export class InventoryResolver {
   constructor(
     private readonly inventoryService: InventoryService,
-    private readonly storeService: StoresService,
+    private readonly storeService: StoresService, // private shopifyapi: ShopifyService,
   ) {}
 
   @Query(() => TotalProducts, { name: 'TotalProducts' })
@@ -57,6 +61,12 @@ export class InventoryResolver {
   findProductById(@Args('id') id: string) {
     console.log({ id });
     return this.inventoryService.findProductById(id);
+  }
+
+  @Public()
+  @Query(() => Product, { name: 'PlatformFeeById' })
+  findPlatformFeeById() {
+    return this.inventoryService.findPlatformFeeById();
   }
 
   @Query(() => Inventory, { name: 'inventory' })
@@ -110,11 +120,44 @@ export class InventoryResolver {
     return [{ status: CollectionUpdateEnum.PROGRESS }];
   }
 
-  @Query(() => [CollectionStatusList], { name: 'getCollectionList' })
-  async getCollectionList(@Args('shop') shop: string) {
-    return await this.inventoryService.findCollectionsWithSyncedStatus(shop);
-  }
+  // @Public()
+  // @Query(() => CollectionListOfShop, { name: 'getCollectionList' })
+  // async getCollectionList(@Args('shop') shop: string) {
+  //   const temp = await this.inventoryService.findCollectionsWithSyncedStatus(
+  //     shop,
+  //   );
+  //   return temp[0];
+  // }
 
+  // @Public()
+  // @Query(() => GetLocationsOutput, { name: 'getLocations' })
+  // async getLocations(
+  //   @Args('getLocationsInput') getLocationsInput: GetLocationsInput,
+  // ) {
+  //   const { shop, variantIds } = getLocationsInput;
+
+  //   const { accessToken } = await this.storeService.findOne(shop);
+
+  //   const locations = await this.shopifyapi.getLocationsByVariantIds(
+  //     shop,
+  //     variantIds,
+  //     accessToken,
+  //   );
+
+  //   return { locations };
+  // }
+
+  // @Public()
+  // @Query(() => ProductsPaginated, { name: 'getPaginatedProducts' })
+  // async getDrops(@Args('productArgs') productArgs: ProductsPaginatedArgs) {
+  //   // console.log(
+  //   //   '🚀 ~ file: inventory.resolver.ts:145 ~ InventoryResolver ~ getDrops ~ productArgs:',
+  //   //   productArgs,
+  //   // );
+  //   return await this.inventoryService.getPaginatedProductsByCollectionIDs(
+  //     productArgs,
+  //   );
+  // }
   // @Mutation(() => Inventory)
   // updateInventory(
   //   @Args('updateInventoryInput') updateInventoryInput: UpdateInventoryInput,

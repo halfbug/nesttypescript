@@ -10,7 +10,9 @@ import {
 import { ShopifyService } from './shopify.service';
 import { CreateShopifyDto } from './dto/create-shopify.dto';
 import { UpdateShopifyDto } from './dto/update-shopify.dto';
+import { Public } from 'src/auth/public.decorator';
 
+@Public()
 @Controller()
 export class ShopifyController {
   constructor(private readonly shopifyService: ShopifyService) {}
@@ -25,10 +27,10 @@ export class ShopifyController {
     return this.shopifyService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.shopifyService.findOne(+id);
-  }
+  // @Get(':id')
+  // findOne(@Param('id') id: string) {
+  //   return this.shopifyService.findOne(+id);
+  // }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateShopifyDto: UpdateShopifyDto) {
@@ -38,5 +40,9 @@ export class ShopifyController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.shopifyService.remove(+id);
+  }
+  @Get('test')
+  test() {
+    return 'running server on port 5000';
   }
 }

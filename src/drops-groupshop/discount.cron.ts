@@ -5,6 +5,7 @@ import { StoresService } from 'src/stores/stores.service';
 import { AppLoggerService } from 'src/applogger/applogger.service';
 import { DropsCategoryService } from 'src/drops-category/drops-category.service';
 import { ConfigService } from '@nestjs/config';
+import { AppLogger } from 'src/applogger/entities/applogger.entity';
 
 @Injectable()
 export class DiscountCron {
@@ -27,7 +28,9 @@ export class DiscountCron {
         const getUpdateDiscountStatus =
           await this.storesService.getUpdateDiscountStatus(store.id);
         const updateCollectionDate = getUpdateDiscountStatus.lastSync;
-        const getLatestLogStatus = await this.apploggerService.findLatestLog(
+        const getLatestLogStatus: AppLogger & {
+          createdAt?: Date | 'undefined';
+        } = await this.apploggerService.findLatestLog(
           'DROPS_COLLECTION_UPDATED',
           store.id,
         );

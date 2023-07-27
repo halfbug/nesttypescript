@@ -8,6 +8,7 @@ import { KalavioService } from 'src/email/kalavio.service';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { DropKlaviyoEvent } from '../events/drop-klaviyo.event';
 import { OrdersService } from 'src/inventory/orders.service';
+import DropsGroupshop from 'src/drops-groupshop/entities/dropsgroupshop.model';
 
 @Injectable()
 export class DropKlaviyoListener {
@@ -95,8 +96,12 @@ export class DropKlaviyoListener {
             : '';
         }
 
-        const lifetimeRevenue =
-          await this.dropsGroupshopService.findDropsLifetimeCashback(klaviyoId);
+        const lifetimeRevenue: (DropsGroupshop & {
+          lifetime_referral_count?: any;
+          lifetime_gs_cashback?: any;
+        })[] = await this.dropsGroupshopService.findDropsLifetimeCashback(
+          klaviyoId,
+        );
 
         const obj = {
           current_milestone_discount: current_milestone_discount,

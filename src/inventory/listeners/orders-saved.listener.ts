@@ -4,6 +4,7 @@ import { InventoryService } from '../inventory.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { OrdersSavedEvent } from '../events/orders-saved.event';
 import { OrdersService } from '../orders.service';
+import Orders from '../entities/orders.modal';
 
 @Injectable()
 export class OrderSavedListener {
@@ -20,9 +21,10 @@ export class OrderSavedListener {
       event.shop,
     );
     console.log(event);
-    const PurchasedProducts = await this.ordersService.getPurchasedProducts(
-      event.shop,
-    );
+    const PurchasedProducts: (Orders & {
+      productId?: any;
+      purchaseCount?: any;
+    })[] = await this.ordersService.getPurchasedProducts(event.shop);
 
     const blukWrite = PurchasedProducts.map((item) => {
       return {

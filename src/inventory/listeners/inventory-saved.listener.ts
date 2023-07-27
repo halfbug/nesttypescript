@@ -7,6 +7,7 @@ import { OrdersService } from '../orders.service';
 import { Product, ProductVariant } from '../entities/product.entity';
 import { InventorySavedEvent } from '../events/inventory-saved.event';
 import { InventoryDoneEvent } from '../events/inventory-done.event';
+import Inventory from '../entities/inventory.modal';
 
 @Injectable()
 export class InventorySavedListener {
@@ -24,7 +25,7 @@ export class InventorySavedListener {
       event,
     );
     if (event.type && ['saved', 'outofstock'].includes(event.type)) {
-      const StoreProducts: Product[] =
+      const StoreProducts: (Inventory & { variants?: any })[] =
         await this.inventoryService.findAllProducts(event.shop);
       // map => variants check qty > 1, outofstock 0 else 1
       // const res = StoreProducts.map((product) => {

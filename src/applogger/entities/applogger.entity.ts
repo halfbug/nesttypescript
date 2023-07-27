@@ -58,5 +58,6 @@ export class AppLogger extends DefaultColumnsService {
   level: 'log' | 'error' | 'warn' | 'debug' | 'verbose';
 
   @Field()
+  @Column()
   createdAt: Date;
 }

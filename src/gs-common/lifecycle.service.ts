@@ -274,15 +274,15 @@ export class LifecycleService {
       },
     ];
     // console.log("🚀 findBillingBydate ~ agg", agg)
-    const manager = getMongoManager();
-    const TotalRes = await manager.aggregate(Lifecycle, agg).toArray();
+    // const manager = getMongoManager();
+    const TotalRes = await this.lifecycleRepository.aggregate(agg).toArray();
     console.log('🚀 get billing by date', TotalRes);
     return TotalRes;
   }
 
   async insertMany(dgroupshops: any[]) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
 
-    return await manager.insertMany(Lifecycle, dgroupshops);
+    return await this.lifecycleRepository.insertMany(dgroupshops);
   }
 }

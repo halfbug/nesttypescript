@@ -93,8 +93,8 @@ export class AdminRolesService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(AdminUserRole, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.adminUserRoleRepository.aggregate(agg).toArray();
     return gs[0];
   }
 

@@ -19,6 +19,7 @@ import { CollectionUpdateEnum } from 'src/stores/entities/store.entity';
 import { DropsCategoryService } from 'src/drops-category/drops-category.service';
 import { PaginationService } from 'src/utils/pagination.service';
 import { ConfigService } from '@nestjs/config';
+import { DropsCategory } from 'src/drops-category/entities/drops-category.entity';
 
 const options = {
   tokenize: function (str) {
@@ -69,8 +70,8 @@ export class InventoryService {
     private paginateService: PaginationService,
     private configService: ConfigService,
   ) {
-    // this.inventoryManager = getMongoManager();
-    // this.inventoryManager = getMongoManager();
+    // // this.inventoryManager = getMongoManager();
+    // // this.inventoryManager = getMongoManager();
   }
 
   async create(createInventoryInput: CreateInventoryInput): Promise<Inventory> {
@@ -101,10 +102,9 @@ export class InventoryService {
     // await this.remove(id);
     // return await this.inventoryRepository.update({ id }, updateInvenotryInput);
     // return await this.inventoryRepository.save(updateInvenotryInput);
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     try {
-      return await manager.updateOne(
-        Inventory,
+      return await this.inventoryRepository.updateOne(
         { id },
         { $set: { ...updateInvenotryInput } },
         {
@@ -117,12 +117,11 @@ export class InventoryService {
   }
 
   async updateInventory(id: string, dif: number, field: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     // console.log('updateInventory', id, dif, field, 'updateInventory');
 
     try {
-      return await manager.findOneAndUpdate(
-        Inventory,
+      return await this.inventoryRepository.findOneAndUpdate(
         { id },
         { $inc: { [field]: dif } },
       );
@@ -132,12 +131,11 @@ export class InventoryService {
   }
 
   async updateProduct(id: string, updatedfields: any) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     console.log('updateInventory', id, updatedfields);
 
     try {
-      return await manager.findOneAndUpdate(
-        Inventory,
+      return await this.inventoryRepository.findOneAndUpdate(
         { id },
         // { ...updatedfields },
         { $set: { ...updatedfields } },
@@ -157,7 +155,7 @@ export class InventoryService {
       'font-size: 1px; padding: 240px 123.5px; background-size: 247px 480px; background: no-repeat url(https://i2.wp.com/i.giphy.com/media/11ZSwQNWba4YF2/giphy-downsized.gif?w=770&amp;ssl=1);',
       id,
     );
-    this.inventoryManager = getMongoManager();
+    // this.inventoryManager = getMongoManager();
     return await this.inventoryManager.deleteMany(Inventory, {
       $or: [{ id: { $regex: id } }, { parentId: { $regex: id } }],
     });
@@ -165,13 +163,13 @@ export class InventoryService {
 
   async removeChildren(id: string) {
     console.log(id, 'remove children');
-    this.inventoryManager = getMongoManager();
+    // this.inventoryManager = getMongoManager();
 
     return await this.inventoryManager.deleteMany(Inventory, { parentId: id });
   }
   async removeVariants(id: string) {
     console.log(id, 'removevariants');
-    this.inventoryManager = getMongoManager();
+    // this.inventoryManager = getMongoManager();
 
     return await this.inventoryManager.deleteMany(Inventory, {
       $and: [
@@ -189,7 +187,7 @@ export class InventoryService {
 
   async removeProductCollections(id: string) {
     console.log(id, 'removevariants');
-    this.inventoryManager = getMongoManager();
+    // this.inventoryManager = getMongoManager();
 
     return await this.inventoryManager.deleteMany(Inventory, {
       $and: [
@@ -203,7 +201,7 @@ export class InventoryService {
 
   async removeEntity(id: string, recordType) {
     console.log(id, 'removevariants');
-    this.inventoryManager = getMongoManager();
+    // this.inventoryManager = getMongoManager();
 
     return await this.inventoryManager.deleteMany(Inventory, {
       $and: [
@@ -216,7 +214,7 @@ export class InventoryService {
   }
 
   async removeMultiPleEntities(ids: string[], recordType) {
-    this.inventoryManager = getMongoManager();
+    // this.inventoryManager = getMongoManager();
 
     return await this.inventoryManager.deleteMany(Inventory, {
       $and: [
@@ -233,7 +231,7 @@ export class InventoryService {
   }
 
   async findTotalProducts(shop: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -260,7 +258,7 @@ export class InventoryService {
         $count: 'count',
       },
     ];
-    this.inventoryManager = getMongoManager();
+    // this.inventoryManager = getMongoManager();
 
     const tp = await this.inventoryManager.aggregate(Inventory, agg).toArray();
     // console.log(
@@ -287,8 +285,6 @@ export class InventoryService {
     });
   }
   async findStoreCollections(shop: string, withproducts: boolean) {
-    const manager = getMongoManager();
-
     // const collections = await manager.distinct(Inventory, 'title', {
     //   shop,
     //   recordType: 'Collection',
@@ -396,13 +392,14 @@ export class InventoryService {
           },
         ];
 
-    const collections = await manager.aggregate(Inventory, query).toArray();
+    const collections = await this.inventoryRepository
+      .aggregate(query)
+      .toArray();
 
     return collections;
   }
 
   async findCollectionsWithSyncedStatus(shop: string) {
-    const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -529,12 +526,11 @@ export class InventoryService {
         },
       },
     ];
-    return await manager.aggregate(Inventory, agg).toArray();
+    return await this.inventoryRepository.aggregate(agg).toArray();
   }
 
   async findStoreProducts(productQueryInput: ProductQueryInput) {
     const { shop, sort, limit } = productQueryInput;
-    const manager = getMongoManager();
 
     const agg = [
       {
@@ -567,13 +563,13 @@ export class InventoryService {
         $limit: limit,
       },
     ];
-    return await manager.aggregate(Inventory, agg).toArray();
+    return await this.inventoryRepository.aggregate(agg).toArray();
   }
 
   async insertMany(inventory: any[]) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
 
-    return await manager.insertMany(Inventory, inventory);
+    return await this.inventoryRepository.insertMany(inventory);
   }
 
   async setPurchaseCount(inventory: any) {
@@ -582,16 +578,16 @@ export class InventoryService {
     //   JSON.stringify(inventory),
     // );
     try {
-      const manager = getMongoManager();
+      // // const manager = getMongoManager();
 
-      return await manager.bulkWrite(Inventory, inventory);
+      return await this.inventoryRepository.bulkWrite(inventory);
     } catch (error) {
       console.error(error);
     }
   }
 
   async getBestSellerProducts(shop: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -625,11 +621,11 @@ export class InventoryService {
         $limit: 80,
       },
     ];
-    return await manager.aggregate(Inventory, agg).toArray();
+    return await this.inventoryRepository.aggregate(agg).toArray();
   }
 
   async getCollectionNameByProductId(shop: string, productId: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -647,11 +643,11 @@ export class InventoryService {
         },
       },
     ];
-    return await manager.aggregate(Inventory, agg).toArray();
+    return await this.inventoryRepository.aggregate(agg).toArray();
   }
 
   async findProductById(id: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -734,7 +730,7 @@ export class InventoryService {
         },
       },
     ];
-    const res = await manager.aggregate(Inventory, agg).toArray();
+    const res = await this.inventoryRepository.aggregate(agg).toArray();
     // console.log(
     //   '🚀 ~ file: inventory.service.ts ~ line 329 ~ InventoryService ~ findProductById ~ res',
     //   res[0].length,
@@ -750,7 +746,7 @@ export class InventoryService {
 
   async findPlatformFeeById() {
     const id = this.configService.get('PLATFORM_FEE_ID');
-    // const manager = getMongoManager();
+    // // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -849,7 +845,7 @@ export class InventoryService {
 
   // it find all products, variants, collection, images
   async findAllProducts(shop: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -937,7 +933,7 @@ export class InventoryService {
     //   '🚀 ~ file: inventory.service.ts ~ line 446 ~ InventoryService ~ findAllProducts ~ agg',
     //   JSON.stringify(agg),
     // );
-    const res = await manager.aggregate(Inventory, agg).toArray();
+    const res = await this.inventoryRepository.aggregate(agg).toArray();
     // console.log('🚀 ~ file: InventoryService ~ findAllProducts ~ res', res);
     return res;
     // return await manager.aggregate(Inventory, agg).toArray();
@@ -945,7 +941,7 @@ export class InventoryService {
 
   // find specific collection products
   async getProductsByCollectionIDs(shop: string, ids: string[], limit) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const pipeline: any[] = [
       {
         $match: {
@@ -1030,13 +1026,14 @@ export class InventoryService {
       },
     ];
 
-    const res = await manager.aggregate(Inventory, agg).toArray();
+    const res: (Inventory & { products?: any })[] =
+      await this.inventoryRepository.aggregate(agg).toArray();
     return [...new Set(res[0].products)];
   }
 
   // it find all products, variants, collection, images
   async findAllProductsOnly(shop: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -1045,7 +1042,7 @@ export class InventoryService {
         },
       },
     ];
-    const res = await manager.aggregate(Inventory, agg).toArray();
+    const res = await this.inventoryRepository.aggregate(agg).toArray();
     // console.log('🚀 ~ file: InventoryService ~ findAllProducts ~ res', res);
     return res;
     // return await manager.aggregate(Inventory, agg).toArray();
@@ -1083,10 +1080,9 @@ export class InventoryService {
   }
 
   async updateProductCount(colId: string, count: number) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     try {
-      return await manager.updateMany(
-        Inventory,
+      return await this.inventoryRepository.updateMany(
         { id: colId },
         { $set: { productsCount: count } },
       );
@@ -1096,7 +1092,7 @@ export class InventoryService {
   }
 
   async findById(id: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     try {
       const agg = [
         {
@@ -1105,7 +1101,7 @@ export class InventoryService {
           },
         },
       ];
-      return await manager.aggregate(Inventory, agg).toArray();
+      return await this.inventoryRepository.aggregate(agg).toArray();
     } catch (err) {
       console.log(err);
     }
@@ -1375,9 +1371,13 @@ export class InventoryService {
 
   async createSearchIndex(shop: string) {
     const { id: storeId } = await this.storeService.findOne(shop);
-    const dropsProducts = await this.dropsCategoryService.findDropsproducts(
-      storeId,
-    );
+    const dropsProducts: (DropsCategory & {
+      products?: { id?: any; description?: any; title?: any; tags?: any };
+      collections?: {
+        shopifyId?: any;
+        name?: any;
+      };
+    })[] = await this.dropsCategoryService.findDropsproducts(storeId);
     // console.log('dropsProducts', JSON.stringify(dropsProducts));
     const index = new Document(options);
     const collectionIds = [];
@@ -1469,7 +1469,7 @@ export class InventoryService {
 
   async getPaginatedProductsByCollectionIDs({ pagination, collection_id }) {
     try {
-      const manager = getMongoManager();
+      // const manager = getMongoManager();
       const { skip, take } = pagination;
       const agg: any = [
         {
@@ -1523,13 +1523,14 @@ export class InventoryService {
           $limit: take,
         },
       ];
-      const result = await manager.aggregate(Inventory, agg).toArray();
+      const result = await this.inventoryRepository.aggregate(agg).toArray();
       agg.pop();
       agg.pop();
       agg.push({
         $count: 'total',
       });
-      const prodcount = await manager.aggregate(Inventory, agg).toArray();
+      const prodcount: (Inventory & { total?: number })[] =
+        await this.inventoryRepository.aggregate(agg).toArray();
       const total = prodcount[0]?.total ?? 0;
       Logger.log(
         `Products paginated for collection (${collection_id}) `,

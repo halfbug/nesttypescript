@@ -130,15 +130,16 @@ export class AppLoggerService {
         ];
       }
 
-      const manager = getMongoManager();
-      const gs = await manager.aggregate(AppLogger, agg).toArray();
+      // // const manager = getMongoManager();
+      const gs = await this.errorLogRepository.aggregate(agg).toArray();
       const result = gs;
       agg.pop();
       agg.pop();
       agg.push({
         $count: 'total',
       });
-      const gscount = await manager.aggregate(AppLogger, agg).toArray();
+      const gscount: (AppLogger & { total?: number })[] =
+        await this.errorLogRepository.aggregate(agg).toArray();
       const total = gscount[0]?.total ?? 0;
       return {
         result,
@@ -170,8 +171,8 @@ export class AppLoggerService {
         $limit: 1,
       },
     ];
-    const manager = getMongoManager();
-    const res = await manager.aggregate(AppLogger, agg).toArray();
+    // const manager = getMongoManager();
+    const res = await this.errorLogRepository.aggregate(agg).toArray();
     return res[0];
   }
 
@@ -191,8 +192,8 @@ export class AppLoggerService {
         $limit: 1,
       },
     ];
-    const manager = getMongoManager();
-    const res = await manager.aggregate(AppLogger, agg).toArray();
+    // const manager = getMongoManager();
+    const res = await this.errorLogRepository.aggregate(agg).toArray();
     return res[0];
   }
 
@@ -210,7 +211,7 @@ export class AppLoggerService {
   }
 
   async findAotuSyncCollection(contextArray: string[]) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -241,7 +242,7 @@ export class AppLoggerService {
         },
       },
     ];
-    const res = await manager.aggregate(AppLogger, agg).toArray();
+    const res = await this.errorLogRepository.aggregate(agg).toArray();
     return res[0];
   }
 }

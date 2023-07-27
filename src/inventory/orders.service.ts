@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getMongoManager, Repository } from 'typeorm';
+import { MongoRepository } from 'typeorm';
 import { CreateOrderInput, DiscountInfo } from './dto/create-order.input';
 import { UpdateFullOrderInput } from './dto/update-fullorder.input';
 import { UpdateOrderInput } from './dto/update-order.input';
@@ -11,13 +11,13 @@ import { Member } from 'src/drops-groupshop/entities/groupshop.modal';
 export class OrdersService {
   constructor(
     @InjectRepository(Orders)
-    private ordersRepository: Repository<Orders>,
+    private ordersRepository: MongoRepository<Orders>,
   ) {}
 
   async insertMany(orders: []) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
 
-    return await manager.insertMany(Orders, orders);
+    return await this.ordersRepository.insertMany(orders);
   }
 
   async getPurchasedProducts(shop: string) {
@@ -57,9 +57,9 @@ export class OrdersService {
       },
     ];
 
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
 
-    return await manager.aggregate(Orders, agg).toArray();
+    return await this.ordersRepository.aggregate(agg).toArray();
   }
   async getPurchasedProductsLastSixMonth(shop: string, nowdate: Date) {
     const agg = [
@@ -119,9 +119,9 @@ export class OrdersService {
       },
     ];
 
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
 
-    return await manager.aggregate(Orders, agg).toArray();
+    return await this.ordersRepository.aggregate(agg).toArray();
   }
 
   async getDataByOrderId(orderId: string) {
@@ -149,9 +149,9 @@ export class OrdersService {
       },
     ];
 
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
 
-    return await manager.aggregate(Orders, agg).toArray();
+    return await this.ordersRepository.aggregate(agg).toArray();
   }
 
   async getCustomerNameByOrderId(orderId: string) {
@@ -162,8 +162,8 @@ export class OrdersService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(Orders, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.ordersRepository.aggregate(agg).toArray();
     return gs;
   }
 
@@ -305,9 +305,9 @@ export class OrdersService {
       },
     ];
 
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
 
-    return await manager.aggregate(Orders, agg).toArray();
+    return await this.ordersRepository.aggregate(agg).toArray();
   }
 
   async getOrderCount(shop: string) {
@@ -328,8 +328,9 @@ export class OrdersService {
         $count: 'countTotalOrders',
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(Orders, agg).toArray();
+    // const manager = getMongoManager();
+    const gs: (Orders & { countTotalOrders?: number })[] =
+      await this.ordersRepository.aggregate(agg).toArray();
     const response = {
       countTotalOrders: gs[0]?.countTotalOrders || 0,
     };
@@ -446,8 +447,8 @@ export class OrdersService {
         },
       });
 
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(Orders, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.ordersRepository.aggregate(agg).toArray();
     return gs;
   }
 
@@ -581,8 +582,8 @@ export class OrdersService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(Orders, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.ordersRepository.aggregate(agg).toArray();
     return gs;
   }
 
@@ -694,8 +695,8 @@ export class OrdersService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(Orders, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.ordersRepository.aggregate(agg).toArray();
     return gs;
   }
 
@@ -712,8 +713,8 @@ export class OrdersService {
   }
 
   async updateBulkOrders(orderData: any) {
-    const manager = getMongoManager();
-    return await manager.bulkWrite(Orders, orderData);
+    // const manager = getMongoManager();
+    return await this.ordersRepository.bulkWrite(orderData);
   }
 
   async smsUpdate(updateOrderInput: UpdateOrderInput) {
@@ -722,8 +723,8 @@ export class OrdersService {
       'customer.email': updateOrderInput.email,
     };
     try {
-      const manager = getMongoManager();
-      manager.updateMany(Orders, criteria, {
+      // const manager = getMongoManager();
+      this.ordersRepository.updateMany(criteria, {
         $set: { 'customer.sms_marketing': updateOrderInput.sms_marketing },
       });
     } catch (err) {
@@ -756,8 +757,8 @@ export class OrdersService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(Orders, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.ordersRepository.aggregate(agg).toArray();
     return gs;
   }
 
@@ -772,8 +773,8 @@ export class OrdersService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(Orders, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.ordersRepository.aggregate(agg).toArray();
     return gs;
   }
 }

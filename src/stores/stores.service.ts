@@ -60,10 +60,9 @@ export class StoresService {
     const dates = sid
       ? { createdAt: new Date(), updatedAt: new Date() }
       : { updatedAt: new Date() };
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     try {
-      await manager.updateOne(
-        Store,
+      await this.storeRepository.updateOne(
         { id },
         { $set: { id: sid, ...createStoreInput, ...dates } },
         {
@@ -98,7 +97,7 @@ export class StoresService {
   }
 
   async findOneWithCampaings(shop: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -116,7 +115,7 @@ export class StoresService {
         },
       },
     ];
-    const res = await manager.aggregate(Store, agg).toArray();
+    const res = await this.storeRepository.aggregate(agg).toArray();
     console.log(
       '🚀 ~ file: stores.service.ts ~ line 69 ~ StoresService ~ findOneByName ~ res',
       res[0],
@@ -143,7 +142,7 @@ export class StoresService {
   }
 
   async findDropStore() {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -154,7 +153,7 @@ export class StoresService {
         },
       },
     ];
-    const res = await manager.aggregate(Store, agg).toArray();
+    const res = await this.storeRepository.aggregate(agg).toArray();
     return res;
   }
 
@@ -258,9 +257,8 @@ export class StoresService {
     return await this.findOneById(id);
   }
   async updateCustom(shop: string, deletedCollectionIds: any[]) {
-    const manager = getMongoManager();
-    return manager.updateOne(
-      Store,
+    // const manager = getMongoManager();
+    return this.storeRepository.updateOne(
       { shop },
       {
         $pull: {
@@ -275,25 +273,25 @@ export class StoresService {
     id: string,
     updateStoreInput: CollectionsToUpdate,
   ) {
-    const manager = getMongoManager();
-    manager.updateOne(Store, { id }, {
+    // const manager = getMongoManager();
+    this.storeRepository.updateOne({ id }, {
       $push: { collectionsToUpdate: updateStoreInput },
     } as any);
   }
 
   async updateCollectionDate(collectionId: string, date: Date) {
-    const manager = getMongoManager();
-    const repository = manager.getMongoRepository(Store);
-    await repository.updateOne(
+    // const manager = getMongoManager();
+    // const repository = this.storeRepository.getMongoRepository(Store);
+    await this.storeRepository.updateOne(
       { 'collectionsToUpdate.collectionId': collectionId },
       { $set: { 'collectionsToUpdate.$.updatedAt': date } },
     );
   }
 
   async removeSyncedCollection(collectionId: string, storeId: string) {
-    const manager = getMongoManager();
-    const repository = manager.getMongoRepository(Store);
-    await repository.updateOne({ id: storeId }, {
+    // const manager = getMongoManager();
+    // const repository = this.storeRepository.getMongoRepository(Store);
+    await this.storeRepository.updateOne({ id: storeId }, {
       $pull: { collectionsToUpdate: { collectionId: collectionId } },
     } as any);
   }
@@ -331,13 +329,13 @@ export class StoresService {
         },
       },
     ];
-    const manager = getMongoManager();
-    return await manager.aggregate(Store, agg).toArray();
+    // const manager = getMongoManager();
+    return await this.storeRepository.aggregate(agg).toArray();
   }
 
   async updateField(criteria: any, updateLiteral: any) {
-    const manager = getMongoManager();
-    manager.updateOne(Store, criteria, {
+    // const manager = getMongoManager();
+    this.storeRepository.updateOne(criteria, {
       $set: { ...updateLiteral, updatedAt: new Date() },
     });
   }
@@ -346,8 +344,8 @@ export class StoresService {
     // console.log('🚀 ~ ~ shop', shop);
     // console.log('🚀 ~ ~ resource', resource);
     try {
-      const manager = getMongoManager();
-      await manager.updateOne(Store, { shop }, {
+      // const manager = getMongoManager();
+      await this.storeRepository.updateOne({ shop }, {
         $push: { resources: resource },
       } as any);
 
@@ -370,7 +368,7 @@ export class StoresService {
   }
 
   async findOneWithActiveCampaing(shop: string): Promise<Store> {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -418,7 +416,7 @@ export class StoresService {
         },
       },
     ];
-    const res = await manager.aggregate(Store, agg).toArray();
+    const res = await this.storeRepository.aggregate(agg).toArray();
     // console.log(
     //   '🚀 ~ file: stores.service.ts ~ line 69 ~ StoresService ~ findOneByName ~ res',
     //   res,
@@ -428,7 +426,7 @@ export class StoresService {
   }
 
   async findOneWithActiveCampaingProducts(shop: string): Promise<Store> {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -484,7 +482,7 @@ export class StoresService {
         },
       },
     ];
-    const res = await manager.aggregate(Store, agg).toArray();
+    const res = await this.storeRepository.aggregate(agg).toArray();
     // console.log(
     //   '🚀 ~ file: stores.service.ts ~ line 69 ~ StoresService ~ findOneByName ~ res',
     //   res,
@@ -494,7 +492,7 @@ export class StoresService {
   }
 
   async findOneWithActiveCampaignByStoreId(storeId: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -532,7 +530,7 @@ export class StoresService {
         },
       },
     ];
-    const res = await manager.aggregate(Store, agg).toArray();
+    const res = await this.storeRepository.aggregate(agg).toArray();
     // console.log(
     //   '🚀 ~ file: stores.service.ts ~ line 69 ~ StoresService ~ findOneByName ~ res',
     //   res,
@@ -543,9 +541,8 @@ export class StoresService {
 
   async updateRecentGS(gs: any) {
     try {
-      const manager = getMongoManager();
-      await manager.updateOne(
-        Store,
+      // const manager = getMongoManager();
+      await this.storeRepository.updateOne(
         { id: gs.storeId },
         { $set: { recentgs: gs.id } },
       );
@@ -626,8 +623,8 @@ export class StoresService {
     });
 
     try {
-      const manager = getMongoManager();
-      return await manager.bulkWrite(Store, bulkwrite);
+      // const manager = getMongoManager();
+      return await this.storeRepository.bulkWrite(bulkwrite);
     } catch (error) {
       console.error(error);
     }
@@ -921,8 +918,8 @@ export class StoresService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const storeWithGS = await manager.aggregate(Store, agg).toArray();
+    // const manager = getMongoManager();
+    const storeWithGS = await this.storeRepository.aggregate(agg).toArray();
     return storeWithGS;
   }
 
@@ -963,11 +960,10 @@ export class StoresService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const updateRecentGS = await manager.aggregate(Store, agg).toArray();
+    // const manager = getMongoManager();
+    const updateRecentGS = await this.storeRepository.aggregate(agg).toArray();
     for (let i = 0; i < updateRecentGS.length; i++) {
-      await manager.updateOne(
-        Store,
+      await this.storeRepository.updateOne(
         { id: updateRecentGS[i].id },
         { $set: { recentgs: updateRecentGS[i].recentgs } },
       );

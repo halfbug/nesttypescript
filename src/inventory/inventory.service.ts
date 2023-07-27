@@ -1,7 +1,7 @@
 import { Inject, forwardRef, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { generatesecondaryCount } from 'src/utils/functions';
-import { getMongoManager, MongoRepository, Repository } from 'typeorm';
+import { getMongoManager, MongoRepository } from 'typeorm';
 import { CreateInventoryInput } from './dto/create-inventory.input';
 import { ProductQueryInput } from './dto/product-query.input';
 import { UpdateInventoryInput } from './dto/update-inventory.input';
@@ -469,6 +469,30 @@ export class InventoryService {
           isSynced: {
             $first: '$isSynced',
           },
+          store: {
+            $first: '$store',
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          collections: {
+            $push: {
+              collectionTitle: '$collectionTitle',
+              collectionId: '$collectionId',
+              productCount: '$productCount',
+              isSynced: '$isSynced',
+            },
+          },
+          collectionsToUpdate: {
+            $first: '$store.collectionsToUpdate',
+          },
+        },
+      },
+      {
+        $match: {
+          'collections.collectionId': { $exists: true },
           store: {
             $first: '$store',
           },

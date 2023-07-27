@@ -27,10 +27,9 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import * as getSymbolFromCurrency from 'currency-symbol-map';
-// import { TokenReceivedEvent } from 'src/shopify-store/events/token-received.event';
 import { Public } from 'src/auth/public.decorator';
+import { v4 as uuid } from 'uuid';
 import { DropCreatedListener } from 'src/drops-groupshop/listeners/drop-created.listener';
-import { UpdateDropsGroupshopInput } from 'src/drops-groupshop/dto/update-drops-groupshop.input';
 import { EncryptDecryptService } from 'src/utils/encrypt-decrypt/encrypt-decrypt.service';
 import { LifecycleService } from 'src/gs-common/lifecycle.service';
 import { EventType } from 'src/gs-common/entities/lifecycle.modal';
@@ -290,130 +289,233 @@ export class CatController {
   // Drop static function for stage testing
   @Get('drop-cron')
   async dropCron(@Req() req, @Res() res) {
-    const storeData = await this.storesService.findDropStore();
-    for (const stores of storeData) {
-      const listId = stores.drops.klaviyo.listId;
-      const shop = stores.shop;
-      const privateKey = stores.drops.klaviyo.privateKey;
-      let lastWeek: any = '';
-      let counter = 0;
-      let updatedCounter = 0;
-      let lastWeekCounter = 0;
-      const d = new Date(new Date().setDate(new Date().getDate() - 7));
-      const year = d.getFullYear();
-      const month = ('0' + (d.getMonth() + 1)).slice(-2);
-      const day = ('0' + d.getDate()).slice(-2);
-      lastWeek = Date.parse(`${year}${'-'}${month}${'-'}${day}`);
+    const stores = await this.storesService.findOneByName(
+      this.configService.get('DROPSHOP'),
+    );
+    // const listId = stores.drops.klaviyo.listId;
+    const listId = this.configService.get('DROPLISTID');
+    const shop = stores.shop;
+    const privateKey = stores.drops.klaviyo.privateKey;
+    const baseline = stores.drops.rewards.baseline;
 
-      const td = new Date(new Date().setDate(new Date().getDate()));
-      const tyear = td.getFullYear();
-      const tmonth = ('0' + (td.getMonth() + 1)).slice(-2);
-      const tday = ('0' + td.getDate()).slice(-2);
-      const today = Date.parse(`${tyear}${'-'}${tmonth}${'-'}${tday}`);
-      let nextPage = '';
+    Logger.log(
+      `Weekly Drop Cron Started for ${shop} at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
 
-      Logger.log(
-        `Weekly Drop Cron start for the listId : ${listId} at ${new Date()}`,
-        'WeeklyDropCron',
-        true,
+    const d = new Date(new Date().setDate(new Date().getDate() - 7));
+    const year = d.getFullYear();
+    const month = ('0' + (d.getMonth() + 1)).slice(-2);
+    const day = ('0' + d.getDate()).slice(-2);
+    const lastWeek = Date.parse(`${year}${'-'}${month}${'-'}${day}`);
+
+    const td = new Date(new Date().setDate(new Date().getDate()));
+    const tyear = td.getFullYear();
+    const tmonth = ('0' + (td.getMonth() + 1)).slice(-2);
+    const tday = ('0' + td.getDate()).slice(-2);
+    const today = Date.parse(`${tyear}${'-'}${tmonth}${'-'}${tday}`);
+
+    let nextPage = '';
+    let allProfiles = [];
+    do {
+      const profiles = await this.kalavioService.getProfilesBySegmentId(
+        listId,
+        nextPage,
+        privateKey,
       );
-      do {
-        const profiles = await this.kalavioService.getProfilesByListId(
-          listId,
-          nextPage,
-          privateKey,
-        );
-        const nextPageLink = profiles?.links?.next ? profiles?.links?.next : '';
-        if (nextPageLink !== '') {
-          nextPage = nextPageLink.split('profiles/?')[1];
-        } else {
-          nextPage = '';
-        }
-        // console.log('profiles', JSON.stringify(profiles));
-        let indexCounter = 0;
-        for (const profile of profiles?.data) {
-          const arrayLength = profiles.data.length;
-          counter = counter + 1;
-          indexCounter = indexCounter + 1;
-          const klaviyoId = profile?.id;
-          const createdAt = Date.parse(
-            profile.attributes.properties?.groupshop_created_at,
-          );
-          const drop_source = profile.attributes.properties?.groupshop_source
-            ? profile.attributes.properties?.groupshop_source
-            : '';
+      allProfiles = [...allProfiles, ...profiles.data];
+      const nextPageLink = profiles?.links?.next ? profiles?.links?.next : '';
 
-          const groupshop_status = profile.attributes.properties
-            ?.groupshop_status
-            ? profile.attributes.properties?.groupshop_status
-            : '';
+      if (nextPageLink !== '') {
+        nextPage = nextPageLink;
+      } else {
+        nextPage = '';
+      }
+      console.log('nextPageLink', nextPageLink);
+    } while (nextPage !== '');
 
-          if (
-            (drop_source === 'API' &&
-              createdAt > lastWeek &&
-              groupshop_status === 'pending') ||
-            (drop_source === 'CRON' && createdAt === today)
-          ) {
-            lastWeekCounter = lastWeekCounter + 1;
-            console.log('Drop recently created ', klaviyoId);
-          } else {
-            updatedCounter = updatedCounter + 1;
-            const dropGroupshops =
-              await this.dropsGroupshopService.getGroupshopByKlaviyoId(
-                klaviyoId,
-              );
-            // Update status in database of old pending drop groupshop
-            if (groupshop_status !== 'active') {
-              dropGroupshops.map(async (dgroupshop) => {
-                dgroupshop.status = 'expired';
-                dgroupshop.expiredAt = new Date();
+    Logger.log(
+      `Weekly Drop Cron fetching ${
+        allProfiles.length
+      } profiles at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
 
-                this.lifecyclesrv.create({
-                  groupshopId: dgroupshop.id,
-                  event: EventType.ended,
-                  dateTime: new Date(),
-                });
+    const filteredProfiles = allProfiles.filter(
+      (profile) =>
+        (profile.attributes.properties?.groupshop_source === 'API' &&
+          profile.attributes.properties?.groupshop_status !== 'pending' &&
+          Date.parse(profile.attributes.properties?.groupshop_created_at) <
+            lastWeek) ||
+        (profile.attributes.properties?.groupshop_source === 'API' &&
+          profile.attributes.properties?.groupshop_status !== 'pending' &&
+          Date.parse(profile.attributes.properties?.groupshop_created_at) >=
+            lastWeek) ||
+        (profile.attributes.properties?.groupshop_source === 'CRON' &&
+          Date.parse(profile.attributes.properties?.groupshop_created_at) !==
+            today),
+    );
 
-                await this.dropsGroupshopService.update(
-                  dgroupshop.id,
-                  dgroupshop,
-                );
-              });
-            }
-            const fullname =
-              profile?.attributes?.properties?.['Full Name'] ?? null;
-            const webdata = {
-              id: klaviyoId,
-              fullname: fullname,
-              first_name: profile?.attributes?.first_name,
-              last_name: profile?.attributes?.last_name,
-              email: profile?.attributes?.email,
-              phone_number: profile?.attributes?.phone_number,
-            };
-            const inputListener: any = {};
-            inputListener.webhook = webdata;
-            inputListener.shop = shop;
-            await this.dropCreatedListener.addCronDrop(inputListener);
-          }
-          // eslint-disable-next-line prettier/prettier
-           if (nextPage === '' && arrayLength === indexCounter) {
-            console.log(
-              `Weekly Drop Cron completed ${updatedCounter}/${counter} at ${new Date()} `,
-            );
-            Logger.log(
-              `Weekly Drop Cron completed ${updatedCounter}/${counter} at ${new Date()} `,
-              'WeeklyDropCron',
-              true,
-            );
-            Logger.log(
-              `Weekly Drop created last week ${lastWeekCounter}/${counter} at ${new Date()} `,
-              'WeeklyDropCron',
-              true,
-            );
-          }
-        }
-      } while (nextPage !== '');
+    Logger.log(
+      `Weekly Drop Cron get filtered Profiles at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
+
+    // console.log('filteredProfiles', JSON.stringify(filteredProfiles));
+
+    const profileKalviyoIDs = filteredProfiles
+      .filter(
+        (profile) =>
+          profile.attributes.properties?.groupshop_status === 'pending',
+      )
+      .map((profile) => {
+        return profile.id;
+      });
+
+    // console.log('profileKalviyoIDs', JSON.stringify(profileKalviyoIDs));
+    const getpendingdropGroupshops =
+      await this.dropsGroupshopService.getAllPendingDropsByIds(
+        profileKalviyoIDs,
+      );
+
+    Logger.log(
+      `Weekly Drop Cron Get Pending Drop Groupshops at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
+
+    const pendingdropGroupshops = getpendingdropGroupshops?.map(
+      (dgroupshop) => {
+        return {
+          groupshopId: dgroupshop,
+          event: EventType.ended,
+          dateTime: new Date(),
+        };
+      },
+    );
+
+    if (pendingdropGroupshops.length > 0) {
+      await this.lifecyclesrv.insertMany(pendingdropGroupshops);
     }
+    Logger.log(
+      `Weekly Drop Cron Completed  Lifecycle ${
+        pendingdropGroupshops.length
+      } records for Pending Drop Groupshops at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
+
+    if (getpendingdropGroupshops.length > 0) {
+      await this.dropsGroupshopService.updateBulkDgroupshops(
+        getpendingdropGroupshops,
+      );
+    }
+
+    Logger.log(
+      `Weekly Drop Cron Updated Bulk Pending Drop Groupshops Status at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
+
+    const dropobjects = filteredProfiles.map((profile, index) => {
+      const discountTitle = `GSD${Date.now()}${index}`;
+      const cryptURL = `/${shop.split('.')[0]}/drops/${this.crypt.encrypt(
+        discountTitle,
+      )}`;
+      const ownerUrl = `/${shop.split('.')[0]}/drops/${this.crypt.encrypt(
+        discountTitle,
+      )}/owner&${this.crypt.encrypt(new Date().toDateString())}`;
+      const expiredFulllink = `${this.configService.get(
+        'FRONT',
+      )}${cryptURL}/status&activated`;
+      const fulllink = `${this.configService.get('FRONT')}${ownerUrl}`;
+
+      return {
+        id: uuid(),
+        storeId: stores.id,
+        url: cryptURL,
+        obSettings: {
+          step: 0,
+          ownerUrl: ownerUrl,
+        },
+        shortUrl: fulllink,
+        expiredUrl: expiredFulllink,
+        expiredShortUrl: expiredFulllink,
+        discountCode: {
+          title: discountTitle,
+          percentage: null,
+          priceRuleId: null,
+        },
+        customerDetail: {
+          klaviyoId: profile?.id,
+          fullName: profile?.attributes?.properties?.['Full Name'] ?? null,
+          firstName: profile?.attributes?.first_name,
+          lastName: profile?.attributes?.last_name,
+          email: profile?.attributes?.email,
+          phone: profile?.attributes?.phone_number,
+        },
+        status: 'pending',
+        groupshopSource: 'CRON',
+        expiredAt: null,
+        milestones: [{ activatedAt: new Date(), discount: baseline }],
+        members: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+    });
+
+    Logger.log(
+      `Weekly Drop Cron Created ${
+        dropobjects.length
+      } records of Drop object for New drop links at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
+    await this.dropsGroupshopService.insertMany(dropobjects);
+
+    Logger.log(
+      `Weekly Drop Cron Successfully Inserted New drop links at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
+
+    Logger.log(
+      `Weekly Drop Cron Start updating profiles on klaviyo at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
+
+    for (const dropobject of dropobjects) {
+      const obj = {
+        groupshop_status: 'pending',
+        groupshop_created_at: `${tyear}${'-'}${tmonth}${'-'}${tday}`,
+        groupshop_source: 'CRON',
+        groupshop_url: dropobject.shortUrl,
+        reactivate_groupshop: dropobject.expiredShortUrl,
+      };
+      const data = Object.keys(obj)
+        .map((key) => {
+          return `${key}=${encodeURIComponent(obj[key])}`;
+        })
+        .join('&');
+      await this.kalavioService.klaviyoProfileUpdate(
+        dropobject.customerDetail.klaviyoId,
+        data,
+        stores.id,
+      );
+    }
+
+    Logger.log(
+      `Weekly Drop Cron updated ${
+        dropobjects.length
+      } profiles on klaviyo at ${new Date()} `,
+      'WeeklyDropCron',
+      true,
+    );
+
     res.status(200).send('Success');
   }
 
@@ -496,7 +598,7 @@ export class CatController {
   @Get('updateAllDiscounts')
   async updateAllDiscounts() {
     console.log(`Update all discount`);
-    // const allDrops = await this.dropsGroupshopService.findAllNullDiscounts();
+    const allDrops = await this.dropsGroupshopService.findAllNullDiscounts();
 
     // allDrops.forEach(async ({ url, storeId }) => {
     //   console.log(
@@ -545,13 +647,5 @@ export class CatController {
     //     console.log(err);
     //   }
     // });
-  }
-
-  @Get('createSearchindex')
-  async createSearchindex() {
-    console.log(`createSearchindex`);
-    const createSearchIndex = await this.inventoryService.createSearchIndex(
-      'native-root-stage.myshopify.com',
-    );
   }
 }

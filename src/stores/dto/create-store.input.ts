@@ -187,6 +187,9 @@ export class DropsInput {
   @Field({ nullable: true })
   spotlightDiscount?: DiscountCodeInput;
 
+  @Field({ nullable: true })
+  vaultDiscount?: DiscountCodeInput;
+
   @Field(() => [CollectionsInputs], { nullable: 'itemsAndList' })
   collections?: CollectionsInputs[];
 
@@ -317,7 +320,7 @@ export class CreateStoreInput {
   appTrialEnd: Date;
 
   @Field({ nullable: true })
-  tierRecurringDate?: Date;
+  tierRecurringDate: Date;
 
   @Field(() => DiscoveryToolsInput, { nullable: true })
   discoveryTool?: DiscoveryToolsInput;

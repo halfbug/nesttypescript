@@ -62,7 +62,7 @@ export default class DropsGroupshop extends DefaultColumnsService {
   @Column({ nullable: true })
   obSettings?: OBSettings;
 
-  @Column({ nullable: true })
+  @Column({ default: [] })
   favorite?: string[];
 
   @Column({ nullable: true })

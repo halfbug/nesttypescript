@@ -32,6 +32,9 @@ export class CreateInventoryInput {
   featuredImage?: string;
 
   @Field({ nullable: true })
+  featuredVideo?: string;
+
+  @Field({ nullable: true })
   shop?: string;
 
   @Field({ nullable: true })
@@ -97,5 +100,17 @@ export class CreateInventoryInput {
   vendor?: string;
 
   @Field({ nullable: true })
+  type?: string;
+
+  @Field({ nullable: true })
   compareAtPrice?: string;
+}
+
+@InputType()
+export class GetLocationsInput {
+  @Field()
+  shop: string;
+
+  @Field(() => [String])
+  variantIds: string[];
 }

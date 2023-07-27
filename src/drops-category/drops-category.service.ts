@@ -256,7 +256,7 @@ export class DropsCategoryService {
     return gs[0].ids;
   }
 
-  async syncDiscountCodes(storeId: string) {
+  async syncDiscountCodes(storeId: string, userId: string) {
     // Bulk Discount Code Update
     const { shop, accessToken, drops } = await this.storesService.findById(
       storeId,
@@ -279,6 +279,21 @@ export class DropsCategoryService {
 
     if (arr.length) {
       this.dropsCollectionUpdatedEvent.emit();
+      const usersInput = { discountCodeUpdated: dropsGroupshops.length };
+
+      if (userId !== '') {
+        Logger.log(
+          '/drops',
+          'Sync Discount Codes',
+          false,
+          'UPDATE',
+          usersInput,
+          userId,
+          null,
+          storeId,
+        );
+      }
+
       const updateStoreInput = new UpdateStoreInput();
       updateStoreInput.drops = {
         ...drops,

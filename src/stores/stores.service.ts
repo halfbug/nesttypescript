@@ -85,8 +85,12 @@ export class StoresService {
   }
   findWithCollectionUpdate() {
     return this.storeRepository.find({
-      where: { collectionsToUpdate: { $exists: true } },
+      where: { collectionsToUpdate: { $exists: true }, status: 'Active' },
     });
+  }
+
+  async findById(id: string) {
+    return this.storeRepository.findOne({ where: { id } });
   }
 
   findOne(shop: string) {
@@ -131,8 +135,8 @@ export class StoresService {
       },
     });
     console.log(JSON.stringify(result));
-    if (typeof result.industry === 'string') {
-      return { ...result, industry: [result.industry] };
+    if (typeof result?.industry === 'string') {
+      return { ...result, industry: [result?.industry] };
     } else {
       return result;
     }
@@ -160,10 +164,6 @@ export class StoresService {
         id: id,
       },
     });
-  }
-
-  async findById(id: string) {
-    return this.storeRepository.findOne({ where: { id } });
   }
 
   async update(id: string, updateStoreInput: UpdateStoreInput) {
@@ -194,12 +194,12 @@ export class StoresService {
         let operation;
         if (
           updateStoreInput.drops.cartRewards.length >
-          oldValue?.drops?.cartRewards.length
+          oldValue?.drops?.cartRewards?.length
         ) {
           operation = 'CREATE';
         } else if (
           updateStoreInput.drops.cartRewards.length <
-          oldValue?.drops?.cartRewards.length
+          oldValue?.drops?.cartRewards?.length
         ) {
           operation = 'REMOVE';
         } else {
@@ -988,7 +988,7 @@ export class StoresService {
     // const spotlightProducts =
     //   await this.inventoryService.getProductsByCollectionIDs(shop, [
     //     spotlightColletionId,
-    //   ]);
+    //   ], false);
 
     // const discountCode = await this.shopifyapi.setAutomaticDiscountCode(
     //   shop,

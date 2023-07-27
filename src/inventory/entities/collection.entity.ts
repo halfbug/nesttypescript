@@ -18,6 +18,9 @@ export class Collection {
   @Field()
   productsCount?: number;
 
+  @Field()
+  type?: string;
+
   @Field(() => [Product])
   products: Product[];
 }

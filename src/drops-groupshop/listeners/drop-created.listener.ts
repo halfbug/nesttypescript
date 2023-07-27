@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
 import { StoresService } from 'src/stores/stores.service';
 import { DropsGroupshopService } from 'src/drops-groupshop/drops-groupshop.service';
 import { EncryptDecryptService } from 'src/utils/encrypt-decrypt/encrypt-decrypt.service';
@@ -11,11 +12,12 @@ import {
 } from 'src/drops-groupshop/dto/create-drops-groupshop.input';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { DropCreatedEvent } from '../events/drop-created.event';
-import { AESEncryptDecryptService } from 'src/utils/encrypt-decrypt/aes-encrypt-decrypt.service';
+import { Product } from 'src/inventory/entities/product.entity';
 
 @Injectable()
 export class DropCreatedListener {
   constructor(
+    // private shopifyService: ShopifyService,
     private eventEmitter: EventEmitter2,
     private configSevice: ConfigService,
     private crypt: EncryptDecryptService,
@@ -23,7 +25,6 @@ export class DropCreatedListener {
     private kalavioService: KalavioService,
     private storesService: StoresService,
     private inventryService: InventoryService,
-    private aesService: AESEncryptDecryptService,
   ) {}
 
   @OnEvent('drop.created')
@@ -85,10 +86,8 @@ export class DropCreatedListener {
           dropCustomer.fullName = webdata.full_name;
           dropCustomer.firstName = webdata.first_name;
           dropCustomer.lastName = webdata.last_name;
-          dropCustomer.email = this.aesService.encryptData(webdata.email);
-          dropCustomer.phone = this.aesService.encryptData(
-            webdata.phone_number,
-          );
+          dropCustomer.email = webdata.email;
+          dropCustomer.phone = webdata.phone_number;
 
           dgroupshop.customerDetail = dropCustomer;
           dgroupshop.status = 'pending';
@@ -176,11 +175,11 @@ export class DropCreatedListener {
 
         const dropCustomer = new DropCustomerInput();
         dropCustomer.klaviyoId = webdata.id;
-        dropCustomer.fullName = webdata.fullname;
+        dropCustomer.fullName = webdata.full_name;
         dropCustomer.firstName = webdata.first_name;
         dropCustomer.lastName = webdata.last_name;
-        dropCustomer.email = this.aesService.encryptData(webdata.email);
-        dropCustomer.phone = this.aesService.encryptData(webdata.phone_number);
+        dropCustomer.email = webdata.email;
+        dropCustomer.phone = webdata.phone_number;
 
         dgroupshop.customerDetail = dropCustomer;
         dgroupshop.status = 'pending';

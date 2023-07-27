@@ -69,4 +69,10 @@ export class GridArgs {
 
   @Field(() => [Sorting], { nullable: 'itemsAndList' })
   sorting: Sorting[];
+
+  @Field(() => Date, { nullable: true })
+  startdate: Date;
+
+  @Field(() => Date, { nullable: true })
+  endDate: Date;
 }

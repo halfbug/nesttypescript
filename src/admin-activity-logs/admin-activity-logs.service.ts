@@ -8,6 +8,7 @@ import {
 } from './dto/create-admin-activity-log.input';
 import { UpdateAdminActivityLogInput } from './dto/update-admin-activity-log.input';
 import AdminActivityLogs from './entities/admin-activity-log.model';
+import { validateOrReject } from 'class-validator';
 import { StoresService } from 'src/stores/stores.service';
 import { DropsCategoryService } from 'src/drops-category/drops-category.service';
 
@@ -213,7 +214,7 @@ export class AdminActivityLogsService {
   }
 
   innerDropsArrays(newObject: any, oldValue: any, activityLog: any, title) {
-    Object.keys(newObject)?.map((ikey) => {
+    Object.keys(newObject ?? {})?.map((ikey) => {
       if (newObject[ikey] !== null) {
         if (typeof newObject[ikey] !== 'object') {
           if (oldValue[ikey] !== undefined || oldValue[ikey] !== null) {
@@ -486,6 +487,18 @@ export class AdminActivityLogsService {
     return activityLog;
   }
 
+  async syncDiscountArrays(oldValue: any, newValue: any) {
+    const activityLog = [];
+    Object.keys(newValue)?.map((key) => {
+      activityLog.push({
+        fieldname: key,
+        oldvalue: null,
+        newValue: newValue[key],
+      });
+    });
+    return activityLog;
+  }
+
   async createAdminActivity(
     message,
     context,
@@ -510,6 +523,8 @@ export class AdminActivityLogsService {
           oldValue,
           mfields,
         );
+      } else if (context === 'Sync Discount Codes') {
+        compareResult = await this.syncDiscountArrays(oldValue, mfields);
       } else {
         compareResult = await this.compareDropsArrays(oldValue, mfields);
       }

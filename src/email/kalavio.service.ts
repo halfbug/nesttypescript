@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { HttpService } from '@nestjs/axios';
+import { getMongoManager, MongoRepository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { StoresService } from 'src/stores/stores.service';
 import { lastValueFrom, map } from 'rxjs';
+import { CreateSignUpInput } from './dto/create-signup.input';
 import * as qrcode from 'qrcode';
 
 @Injectable()
@@ -130,15 +133,49 @@ export class KalavioService {
   }
 
   async getProfilesByListId(listId, nextPage, PRIVATE_KEY) {
-    const urlKlaviyo = `${this.configService.get(
-      'KLAVIYO_BASE_URL',
-    )}${'/lists/'}${listId}${'/profiles/?'}${nextPage}&page[size]=100`;
+    let urlKlaviyo;
+    if (nextPage == '') {
+      urlKlaviyo = `${this.configService.get(
+        'KLAVIYO_BASE_URL',
+      )}${'/lists/'}${listId}${'/profiles/?'}${nextPage}&page[size]=100`;
+    } else {
+      urlKlaviyo = nextPage;
+    }
+
     try {
       const options = {
         headers: {
           Authorization: `${'Klaviyo-API-Key '}${PRIVATE_KEY}`,
           accept: 'application/json',
-          revision: '2023-02-22',
+          revision: '2023-06-15',
+        },
+      };
+      const getProfiles = await lastValueFrom(
+        this.httpService.get(urlKlaviyo, options).pipe(map((res) => res.data)),
+      );
+      return getProfiles;
+    } catch (err) {
+      Logger.error(err, KalavioService.name);
+      console.error(err);
+    }
+  }
+
+  async getProfilesBySegmentId(segementId, nextPage, PRIVATE_KEY) {
+    let urlKlaviyo;
+    if (nextPage == '') {
+      urlKlaviyo = `${this.configService.get(
+        'KLAVIYO_BASE_URL',
+      )}${'/segments/'}${segementId}${'/profiles/?'}${nextPage}&page[size]=100`;
+    } else {
+      urlKlaviyo = nextPage;
+    }
+
+    try {
+      const options = {
+        headers: {
+          Authorization: `${'Klaviyo-API-Key '}${PRIVATE_KEY}`,
+          accept: 'application/json',
+          revision: '2023-06-15',
         },
       };
       const getProfiles = await lastValueFrom(

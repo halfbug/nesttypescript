@@ -42,7 +42,7 @@ export class DiscountCron {
           //   !!(updateCollectionDate > getLatestDate),
           // );
           if (updateCollectionDate < getLatestDate) {
-            this.dropsCategoryService.syncDiscountCodes(store.id);
+            this.dropsCategoryService.syncDiscountCodes(store.id, '');
             // console.log('update discoutn codes');
             Logger.log(
               `discountcode update after collection sync`,

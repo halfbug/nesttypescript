@@ -1,8 +1,10 @@
 import { Resolver, Query, Args, Info } from '@nestjs/graphql';
 import { InventoryService } from './inventory.service';
 import {
+  CollectionListOfShop,
   CollectionStatusList,
   Inventory,
+  GetLocationsOutput,
   SearchResult,
 } from './entities/inventory.entity';
 import { Collection } from './entities/collection.entity';
@@ -120,14 +122,14 @@ export class InventoryResolver {
     return [{ status: CollectionUpdateEnum.PROGRESS }];
   }
 
-  // @Public()
-  // @Query(() => CollectionListOfShop, { name: 'getCollectionList' })
-  // async getCollectionList(@Args('shop') shop: string) {
-  //   const temp = await this.inventoryService.findCollectionsWithSyncedStatus(
-  //     shop,
-  //   );
-  //   return temp[0];
-  // }
+  @Public()
+  @Query(() => CollectionListOfShop, { name: 'getCollectionList' })
+  async getCollectionList(@Args('shop') shop: string) {
+    const temp = await this.inventoryService.findCollectionsWithSyncedStatus(
+      shop,
+    );
+    return temp[0];
+  }
 
   // @Public()
   // @Query(() => GetLocationsOutput, { name: 'getLocations' })

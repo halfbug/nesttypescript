@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getMongoManager, MongoRepository } from 'typeorm';
+import { getMongoManager, MongoRepository, Repository } from 'typeorm';
 import { EventType, Lifecycle } from './entities/lifecycle.modal';
 
 @Injectable()
@@ -278,5 +278,11 @@ export class LifecycleService {
     const TotalRes = await manager.aggregate(Lifecycle, agg).toArray();
     console.log('🚀 get billing by date', TotalRes);
     return TotalRes;
+  }
+
+  async insertMany(dgroupshops: any[]) {
+    const manager = getMongoManager();
+
+    return await manager.insertMany(Lifecycle, dgroupshops);
   }
 }

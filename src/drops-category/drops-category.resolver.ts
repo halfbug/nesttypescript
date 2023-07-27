@@ -69,7 +69,10 @@ export class DropsCategoryResolver {
   }
 
   @Mutation(() => CodeUpdateStatusType)
-  syncDiscountCodes(@Args('storeId', { type: () => String }) storeId: string) {
-    return this.dropsCategoryService.syncDiscountCodes(storeId);
+  syncDiscountCodes(
+    @Args('storeId', { type: () => String }) storeId: string,
+    @Args('userId', { type: () => String }) userId: string,
+  ) {
+    return this.dropsCategoryService.syncDiscountCodes(storeId, userId);
   }
 }

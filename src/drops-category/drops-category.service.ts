@@ -117,8 +117,8 @@ export class DropsCategoryService {
       };
     });
 
-    const manager = getMongoManager();
-    await manager.bulkWrite(DropsCategory, blukWrite);
+    // const manager = getMongoManager();
+    await this.DropsCategoryRepository.bulkWrite(blukWrite);
 
     const { shop } = await this.storesService.findById(id);
     // create event for Search Indexing
@@ -135,7 +135,7 @@ export class DropsCategoryService {
     userId: string,
     storeId: string,
   ) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const dropCategory = await this.findOne(categoryId[0]);
     Logger.log(
       '/drops',
@@ -154,14 +154,14 @@ export class DropsCategoryService {
     this.searchIndexingRefreshEvent.emit();
 
     Logger.log(collectionUpdateMsg, 'DROPS_COLLECTION_UPDATED', true);
-    return await manager.deleteMany(DropsCategory, {
+    return await this.DropsCategoryRepository.deleteMany({
       categoryId: { $in: categoryId },
     });
   }
 
   async removeMany(id: any) {
-    const manager = getMongoManager();
-    return await manager.deleteMany(DropsCategory, { storeId: id });
+    // const manager = getMongoManager();
+    return await this.DropsCategoryRepository.deleteMany({ storeId: id });
   }
 
   async getNonSVCollectionIDs(storeId: string): Promise<[string]> {
@@ -205,8 +205,9 @@ export class DropsCategoryService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(DropsCategory, agg).toArray();
+    // const manager = getMongoManager();
+    const gs: (DropsCategory & { ids?: [string] })[] =
+      await this.DropsCategoryRepository.aggregate(agg).toArray();
     return gs[0]?.ids;
   }
 
@@ -251,8 +252,9 @@ export class DropsCategoryService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(DropsCategory, agg).toArray();
+    // const manager = getMongoManager();
+    const gs: (DropsCategory & { ids?: [string] })[] =
+      await this.DropsCategoryRepository.aggregate(agg).toArray();
     return gs[0].ids;
   }
 
@@ -311,7 +313,7 @@ export class DropsCategoryService {
 
   // Find drops product and collections for search indexing
   async findDropsproducts(storeId: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -351,7 +353,7 @@ export class DropsCategoryService {
         },
       },
     ];
-    const res = await manager.aggregate(DropsCategory, agg).toArray();
+    const res = await this.DropsCategoryRepository.aggregate(agg).toArray();
     return res;
   }
 }

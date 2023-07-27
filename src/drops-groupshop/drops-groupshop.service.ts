@@ -68,8 +68,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return gs[0];
   }
 
@@ -127,8 +127,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return gs;
   }
 
@@ -137,11 +137,15 @@ export class DropsGroupshopService {
   }
 
   async addFavoriteProduct(dropsId: string, productId: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     try {
-      await manager.updateOne(DropsGroupshop, { id: dropsId }, {
-        $push: { favorite: productId },
-      } as any);
+      await this.DropsGroupshopRepository.updateOne(
+        DropsGroupshop,
+        { id: dropsId },
+        {
+          $push: { favorite: productId },
+        } as any,
+      );
 
       Logger.log(
         `Product added (${productId}) in favorite of Drops GS ${dropsId}`,
@@ -160,10 +164,11 @@ export class DropsGroupshopService {
   }
 
   async removeFavoriteProduct(dropsId: string, productId: string) {
-    const manager = getMongoManager();
-    const repository = manager.getMongoRepository(DropsGroupshop);
+    // const manager = getMongoManager();
+    // const repository =
+    //   this.DropsGroupshopRepository.getMongoRepository(DropsGroupshop);
     try {
-      await repository.updateOne({ id: dropsId }, {
+      await this.DropsGroupshopRepository.updateOne({ id: dropsId }, {
         $pull: { favorite: productId },
       } as any);
 
@@ -184,7 +189,7 @@ export class DropsGroupshopService {
   }
 
   async getFavoriteProducts(dropsId: string) {
-    const manager = getMongoManager();
+    // const manager = getMongoManager();
     const agg = [
       {
         $match: {
@@ -226,7 +231,7 @@ export class DropsGroupshopService {
       },
     ];
 
-    const temp = await manager.aggregate(DropsGroupshop, agg).toArray();
+    const temp = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return temp[0];
   }
 
@@ -341,8 +346,8 @@ export class DropsGroupshopService {
         ...agg,
       ];
 
-      const manager = getMongoManager();
-      const gs = await manager.aggregate(DropsGroupshop, agg).toArray();
+      // const manager = getMongoManager();
+      const gs = await this.DropsGroupshopRepository.aggregate(agg).toArray();
       console.log(
         '🚀 ~ file: drops-groupshop.service.ts:221 ~ DropsGroupshopService ~ getdrops ~ agg:',
         JSON.stringify(agg),
@@ -353,7 +358,8 @@ export class DropsGroupshopService {
       agg.push({
         $count: 'total',
       });
-      const gscount = await manager.aggregate(DropsGroupshop, agg).toArray();
+      const gscount: (DropsGroupshop & { total?: number })[] =
+        await this.DropsGroupshopRepository.aggregate(agg).toArray();
       const total = gscount[0]?.total ?? 0;
       return {
         result,
@@ -546,8 +552,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return gs[0];
   }
 
@@ -791,8 +797,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(Store, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return gs[0];
   }
 
@@ -882,8 +888,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(DropsCategory, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return gs[0];
   }
 
@@ -915,8 +921,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return gs[0];
   }
 
@@ -962,8 +968,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const result = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const result = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return result;
   }
 
@@ -989,8 +995,8 @@ export class DropsGroupshopService {
         $limit: 10,
       },
     ];
-    const manager = getMongoManager();
-    const result = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const result = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return result;
   }
 
@@ -1019,8 +1025,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const result = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const result = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return result;
   }
 
@@ -1100,8 +1106,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const result = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const result = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return result;
   }
 
@@ -1122,8 +1128,8 @@ export class DropsGroupshopService {
         },
       },
     ];
-    const manager = getMongoManager();
-    const result = await manager.aggregate(DropsGroupshop, agg).toArray();
+    // const manager = getMongoManager();
+    const result = await this.DropsGroupshopRepository.aggregate(agg).toArray();
     return result;
   }
 
@@ -1161,8 +1167,8 @@ export class DropsGroupshopService {
   }
 
   async insertMany(dgroupshops: any[]) {
-    const manager = getMongoManager();
-    return await manager.insertMany(DropsGroupshop, dgroupshops);
+    // const manager = getMongoManager();
+    return await this.DropsGroupshopRepository.insertMany(dgroupshops);
   }
 
   async updateBulkDgroupshops(dgroupshops: any) {
@@ -1180,8 +1186,8 @@ export class DropsGroupshopService {
       };
     });
     try {
-      const manager = getMongoManager();
-      return await manager.bulkWrite(DropsGroupshop, bulkwrite);
+      // const manager = getMongoManager();
+      return await this.DropsGroupshopRepository.bulkWrite(bulkwrite);
     } catch (error) {
       console.error(error);
     }

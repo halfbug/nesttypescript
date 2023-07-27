@@ -113,8 +113,8 @@ export class AdminActivityLogsService {
       ];
     }
 
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(AdminActivityLogs, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.adminActivityLogsRepository.aggregate(agg).toArray();
     return gs;
   }
 
@@ -181,8 +181,8 @@ export class AdminActivityLogsService {
       ];
     }
 
-    const manager = getMongoManager();
-    const gs = await manager.aggregate(AdminActivityLogs, agg).toArray();
+    // const manager = getMongoManager();
+    const gs = await this.adminActivityLogsRepository.aggregate(agg).toArray();
     return gs;
   }
 

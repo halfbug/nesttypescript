@@ -79,8 +79,8 @@ export class AdminUsersService {
         },
       },
     ];
-    const manager = getMongoManager();
-    return manager.aggregate(AdminUser, agg).toArray();
+    // const manager = getMongoManager();
+    return this.adminUserRepository.aggregate(agg).toArray();
   }
 
   findOne(fieldname: string, value: any) {

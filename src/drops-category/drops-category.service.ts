@@ -260,9 +260,7 @@ export class DropsCategoryService {
 
   async syncDiscountCodes(storeId: string, userId: string) {
     // Bulk Discount Code Update
-    const { shop, accessToken, drops } = await this.storesService.findById(
-      storeId,
-    );
+    const { shop, session, drops } = await this.storesService.findById(storeId);
     const ids = await this.getNonSVCollectionIDs(storeId);
     const dropsGroupshops = await this.dropsService.getActiveDrops(storeId);
     const arr = dropsGroupshops.filter(
@@ -273,7 +271,7 @@ export class DropsCategoryService {
     );
 
     this.dropsCollectionUpdatedEvent.shop = shop;
-    this.dropsCollectionUpdatedEvent.accessToken = accessToken;
+    this.dropsCollectionUpdatedEvent.session = session;
     this.dropsCollectionUpdatedEvent.collections = ids;
     this.dropsCollectionUpdatedEvent.dropsGroupshops = arr;
     this.dropsCollectionUpdatedEvent.storeId = storeId;

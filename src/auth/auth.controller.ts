@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+// import { ShopifyService } from 'src/shopify/shopify.service';
 import { StoresService } from 'src/stores/stores.service';
 import { AuthService } from './auth.service';
 // import { LoginAuthDto } from './dto/login-auth.dto';
@@ -23,6 +23,8 @@ import { AuthEntity, User } from './entities/auth.entity';
 import { randomInt } from 'crypto';
 import { AdminUsersService } from 'src/admin-users/admin-users.service';
 import { AdminRolesService } from 'src/admin-roles/admin-roles.service';
+import { ShopifyService } from 'src/shopify/shopify.service';
+import { EncryptDecryptService } from 'src/utils/encrypt-decrypt/encrypt-decrypt.service';
 // import { AuthDecorator } from 'src/auth/auth.decorator';
 // import { UpdateAuthDto } from './dto/update-auth.dto';
 
@@ -31,111 +33,94 @@ import { AdminRolesService } from 'src/admin-roles/admin-roles.service';
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
-    // private shopifyService: ShopifyService,
+    private shopifyService: ShopifyService,
     private configService: ConfigService,
     private storesService: StoresService,
     private userService: AdminUsersService,
     private adminRoleService: AdminRolesService,
+    private crypt: EncryptDecryptService,
   ) {}
 
   @Get()
   async login(@Req() req: Request, @Res() res: Response) {
-    // const authRoute = await this.authService.loginOnline(
-    //   req,
-    //   res,
-    //   req.query.store as string,
-    // );
-    // console.log(
-    //   '🚀 ~ file: auth.controller.ts ~ line 29 ~ AuthController ~ authRoute',
-    //   authRoute,
-    // );
-    // return res.redirect(authRoute);
+    const { shop } = req.query;
+    // console.log('🚀 ~ auth login ~ shop:', shop);
+    await this.shopifyService.shopify.auth.begin({
+      shop: await this.shopifyService.sanitizeShop(shop),
+      callbackPath: '/auth/callback',
+      isOnline: true,
+      rawRequest: req,
+      rawResponse: res,
+    });
   }
 
   @Get('callback')
   async callback(@Req() req: Request, @Res() res: Response) {
-    console.log('inside auth callback');
-    console.log('auth - req.quer :', req.query);
-    console.log('auth - req.body :', req.body);
-    // const session = await this.shopifyService.validateAuth(req, res);
-    // console.log(
-    //   '🚀 ~ file: auth.controller.ts ~ line 55 ~ AuthController ~ callback ~ session',
-    //   session,
-    // );
+    // console.log('inside auth callback');
+    // console.log('auth - req.quer :', req.query);
+    // console.log('auth - req.body :', req.body);
+    const { session } = await this.shopifyService.shopify.auth.callback({
+      rawRequest: req,
+      rawResponse: res,
+    });
 
-    //get session
-    // const currentSession = await this.shopifyService.currentSession(
-    //   req,
-    //   res,
-    //   true,
-    // );
-    // console.log(
-    //   '🚀 ~ file: auth.controller.ts ~ line 52 ~ AuthController ~ callback ~ currentSession',
-    //   currentSession,
-    // );
     //  sign JWT token
-    // const mainSession = currentSession.isOnline ? currentSession : session;
-    // const {
-    //   id,
-    //   shop,
-    //   expires,
-    //   accessToken,
-    //   onlineAccessInfo: { associated_user: user },
-    // } = mainSession;
 
-    // const token = this.authService.signJwt({
-    //   id,
-    //   user,
-    //   shop,
-    //   accessToken,
-    //   expires,
-    //   isGSAdminUser: false,
-    // });
+    const {
+      id,
+      shop,
+      expires,
+      accessToken,
+      onlineAccessInfo: { associated_user: user },
+    } = session;
+
+    const token = this.authService.signJwt({
+      id,
+      user,
+      shop,
+      // accessToken,
+      expires,
+      isGSAdminUser: false,
+      onlineSession: await this.crypt.sencrypt(JSON.stringify(session)),
+    });
     // console.log(
     //   '🚀 ~ file: auth.controller.ts ~ line 64 ~ AuthController ~ callback ~ token',
     //   token,
     // );
     // post it to the login webhook front end
-    // const store = await this.storesService.findOne(shop);
-    // const storeUrl = this.authService.goToAppfront(store);
-    // console.log(
-    //   '🚀 ~ file: auth.controller.ts ~ line 82 ~ AuthController ~ callback ~ storeUrl',
-    //   storeUrl,
-    // );
-    // res.redirect(
-    //   `${this.configService.get(
-    //     'FRONT',
-    //   )}/auth/login?rurl=${this.authService.goToAppfront(store)}&st=${token}`,
-    // );
-    // return res.redirect(
-    //   `${this.configService.get('FRONT')}/${shopName.split('.')[0]}/0`,
-    // );
+    const store = await this.storesService.findOne(shop);
+
+    res.redirect(
+      `${this.configService.get(
+        'FRONT',
+      )}/api/login?rurl=${this.authService.goToAppfront(store)}&st=${token}`,
+    );
   }
 
   @Post('verify')
   async verify(@Req() req: Request, @Res() res: Response) {
     const rowToken = req.headers.authorization.split(' ');
+    // console.log('🚀 ~  rowToken:', rowToken);
     if (!!rowToken) {
       const tokenData = this.authService.decodeJwt(rowToken[1]);
       try {
-        console.log(
-          '🚀 ~ file: auth.controller.ts ~ line 102 ~ AuthController ~ verify ~ tokenData',
-          tokenData,
-        );
+        // console.log(
+        //   '🚀 ~ file: auth.controller.ts ~ line 102 ~ AuthController ~ verify ~ tokenData',
+        //   tokenData,
+        // );
         if (!tokenData.isGSAdminUser) {
-          const resData = await this.authService.verifyToken(tokenData);
-
-          console.log(
-            '🚀 ~ file: auth.controller.ts ~ line 106 ~ AuthController ~ verify ~ resData',
-            resData,
+          const resData = await this.authService.verifyToken(
+            await this.crypt.sdicrypt(tokenData.onlineSession),
           );
+
+          // console.log(
+          //   '🚀 ~ file: auth.controller.ts ~ line 106 ~ AuthController ~ verify ~ resData',
+          //   resData,
+          // );
         }
         res.send({ ...tokenData.user });
       } catch (error) {
-        console.log(
-          '🚀 ~ file: auth.controller.ts ~ line 112 ~ AuthController ~ verify ~ error',
-          error.message,
-        );
+        // console.log('🚀 ~ verify ~ error', error);
         // console.log(error);
         res.status(403).send({
           ...error,
@@ -152,17 +137,17 @@ export class AuthController {
   @Post('user')
   async userVerify(@Req() req: Request, @Res() res: Response) {
     const rowToken = req.headers.authorization.split(' ');
-    console.log(
-      '🚀 ~ file: auth.controller.ts ~ line 132 ~ AuthController ~ userVerify ~ rowToken',
-      rowToken,
-    );
+    // console.log(
+    //   '🚀 ~ file: auth.controller.ts ~ line 132 ~ AuthController ~ userVerify ~ rowToken',
+    //   rowToken,
+    // );
     if (rowToken[1] !== 'undefined') {
       const tokenData = this.authService.decodeJwt(rowToken[1]);
       try {
-        console.log(
-          '🚀 ~ file: auth.controller.ts ~ line 102 ~ AuthController ~ verify ~ tokenData',
-          tokenData,
-        );
+        // console.log(
+        //   '🚀 ~ file: auth.controller.ts ~ line 102 ~ AuthController ~ verify ~ tokenData',
+        //   tokenData,
+        // );
         let userRoleName: any;
         if (tokenData.user.userRole) {
           userRoleName = await this.adminRoleService.findOne(
@@ -179,10 +164,7 @@ export class AuthController {
           jobtitle: userRoleName ? userRoleName.roleName : '',
         });
       } catch (error) {
-        console.log(
-          '🚀 ~ file: auth.controller.ts ~ line 112 ~ AuthController ~ verify ~ error',
-          error.message,
-        );
+        // console.log('🚀 ~ userverify ~ error', error);
         // console.log(error);
         res.status(403).send({
           error: true,
@@ -200,9 +182,9 @@ export class AuthController {
 
   @Post('stafflogin')
   async admin_login(@Req() req: Request, @Res() res: Response) {
-    console.log('staffLogin');
+    // console.log('staffLogin');
     // 1. get email and password from front server
-    console.log('auth - req.body :', req.body);
+    // console.log('auth - req.body :', req.body);
     // 2. @Todo verify email and password from database admin user collection
     const registerdUser = await this.userService.verify({
       email: req.body.email,
@@ -224,10 +206,10 @@ export class AuthController {
         expires: new Date(new Date().setDate(new Date().getDate() + 3)), // expires 3d
       };
       const token = this.authService.signJwt(userInfo);
-      console.log(
-        '🚀 ~ file: auth.controller.ts ~ line 64 ~ AuthController ~ callback ~ token',
-        token,
-      );
+      // console.log(
+      //   '🚀 ~ file: auth.controller.ts ~ line 64 ~ AuthController ~ callback ~ token',
+      //   token,
+      // );
       // 4. send jwt token to front server
       res.status(200).send({ token });
     } else

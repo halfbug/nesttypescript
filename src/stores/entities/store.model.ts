@@ -11,6 +11,7 @@ import {
 import { DiscountCode } from 'src/drops-groupshop/entities/groupshop.modal';
 import SocialLinks from './social-link.model';
 import { Field, InputType, ObjectType } from '@nestjs/graphql';
+import { Session } from '@shopify/shopify-api';
 
 export class Resource {
   @Column({ nullable: true })
@@ -245,4 +246,9 @@ export default class Store extends DefaultColumnsService {
 
   @Column('enum', { default: CollectionUpdateEnum.COMPLETE })
   collectionUpdateStatus?: CollectionUpdateEnum;
+
+  @Column({ nullable: true })
+  state?: string;
 }
+
+export type StoreWithSession = Store & { session: Session };

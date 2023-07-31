@@ -15,7 +15,7 @@ import { OrdersResolver } from './orders.resolver';
 import { InventoryDoneEvent } from './events/inventory-done.event';
 import { ProductOutofstockEvent } from './events/product-outofstock.event';
 import { SyncCollectionCron } from './inventory.cron';
-// import { ShopifyStoreModule } from 'src/shopify-store/shopify-store.module';
+import { ShopifyModule } from 'src/shopify/shopify.module';
 import { StoresModule } from 'src/stores/stores.module';
 import { AppLoggerModule } from 'src/applogger/applogger.module';
 import { SearchIndexingRefreshEvent } from './events/searchIndexing-refresh.event';
@@ -29,7 +29,7 @@ import { DropsCategoryModule } from 'src/drops-category/drops-category.module';
     HttpModule,
     DropsCategoryModule,
     forwardRef(() => StoresModule),
-    // forwardRef(() => ShopifyStoreModule),
+    forwardRef(() => ShopifyModule),
     forwardRef(() => AppLoggerModule),
   ],
   providers: [

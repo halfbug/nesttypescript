@@ -17,7 +17,7 @@ import { map } from 'rxjs/operators';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { OrdersService } from 'src/inventory/orders.service';
 import { KalavioService } from '../kalavio.service';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+// import { ShopifyService } from 'src/shopify/shopify.service';
 // import { StoreService } from 'src/shopify-store/store/store.service';
 // import { OrdersReceivedEvent } from 'src/shopify-store/events/orders-received.event';
 import { StoresService } from 'src/stores/stores.service';

@@ -60,4 +60,6 @@ export class AuthEntity {
   exp?: number;
   @Field({ defaultValue: false })
   isGSAdminUser: boolean;
+  @Field({ defaultValue: false })
+  onlineSession?: string;
 }

@@ -12,7 +12,7 @@ import { LifecycleService } from 'src/gs-common/lifecycle.service';
 import { KalavioService } from 'src/email/kalavio.service';
 import { EventType } from 'src/gs-common/entities/lifecycle.modal';
 import { StoresService } from 'src/stores/stores.service';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+import { ShopifyService } from 'src/shopify/shopify.service';
 import { GridArgs } from './dto/paginationArgs.input';
 import { DropsPage } from './entities/drops-paginate.entity';
 import { DropsCategory } from 'src/drops-category/entities/drops-category.entity';
@@ -27,7 +27,7 @@ export class DropsGroupshopResolver {
     private kalavioService: KalavioService,
     private readonly lifecyclesrv: LifecycleService,
     private storesService: StoresService,
-    // private shopifyapi: ShopifyService,
+    private shopifyapi: ShopifyService,
     private dropsCategoryService: DropsCategoryService,
   ) {}
 
@@ -57,14 +57,14 @@ export class DropsGroupshopResolver {
   async expireAtUpdate(groupshop, Dcode, eventType) {
     const newExpiredate = addDays(new Date(), 1);
 
-    // let updatedDiscountCode = groupshop.discountCode;
+    let updatedDiscountCode = groupshop.discountCode;
 
     const {
       shop,
-      accessToken,
       drops: {
         rewards: { baseline },
       },
+      session,
     } = await this.storesService.findById(groupshop?.storeId);
 
     const collections = await this.dropsCategoryService.getNonSVCollectionIDs(
@@ -72,34 +72,34 @@ export class DropsGroupshopResolver {
     );
     if (eventType === EventType.started) {
       if (collections.length) {
-        // updatedDiscountCode = await this.shopifyapi.setDiscountCode(
-        //   shop,
-        //   'Create',
-        //   accessToken,
-        //   groupshop.discountCode.title,
-        //   parseInt(baseline, 10),
-        //   [...new Set(collections)],
-        //   new Date(),
-        //   newExpiredate,
-        //   null,
-        //   true,
-        //   true,
-        // );
+        updatedDiscountCode = await this.shopifyapi.setDiscountCode(
+          shop,
+          'Create',
+          session,
+          groupshop.discountCode.title,
+          parseInt(baseline, 10),
+          [...new Set(collections)],
+          new Date(),
+          newExpiredate,
+          null,
+          true,
+          true,
+        );
       }
     } else {
-      // await this.shopifyapi.setDiscountCode(
-      //   shop,
-      //   'Update',
-      //   accessToken,
-      //   groupshop.discountCode.title,
-      //   null,
-      //   [...new Set(collections)],
-      //   groupshop.createdAt,
-      //   newExpiredate,
-      //   groupshop.discountCode.priceRuleId,
-      //   true,
-      //   true,
-      // );
+      await this.shopifyapi.setDiscountCode(
+        shop,
+        'Update',
+        session,
+        groupshop.discountCode.title,
+        null,
+        [...new Set(collections)],
+        groupshop.createdAt,
+        newExpiredate,
+        groupshop.discountCode.priceRuleId,
+        true,
+        true,
+      );
 
       this.lifecyclesrv.create({
         groupshopId: groupshop.id,
@@ -107,36 +107,36 @@ export class DropsGroupshopResolver {
         dateTime: newExpiredate,
       });
     }
-    // const updateGS = await this.dropsGroupshopService.updateExpireDate(
-    //   {
-    //     ...groupshop,
-    //     status: 'active',
-    //     discountCode: updatedDiscountCode ?? groupshop.discountCode,
-    //     expiredAt: newExpiredate,
-    //     id: groupshop.id,
-    //     oldStatus: groupshop.status,
-    //   },
-    //   Dcode,
-    // );
+    const updateGS = await this.dropsGroupshopService.updateExpireDate(
+      {
+        ...groupshop,
+        status: 'active',
+        discountCode: updatedDiscountCode ?? groupshop.discountCode,
+        expiredAt: newExpiredate,
+        id: groupshop.id,
+        oldStatus: groupshop.status,
+      },
+      Dcode,
+    );
 
     // add lifcycle event for revised groupshop
 
-    // const documents = [
-    //   {
-    //     groupshopId: groupshop.id,
-    //     event: eventType,
-    //     dateTime: new Date(),
-    //   },
-    //   {
-    //     groupshopId: groupshop.id,
-    //     event: EventType.expired,
-    //     dateTime: newExpiredate ?? new Date(),
-    //   },
-    // ];
+    const documents = [
+      {
+        groupshopId: groupshop.id,
+        event: eventType,
+        dateTime: new Date(),
+      },
+      {
+        groupshopId: groupshop.id,
+        event: EventType.expired,
+        dateTime: newExpiredate ?? new Date(),
+      },
+    ];
 
-    // this.lifecyclesrv.createMany(documents);
+    this.lifecyclesrv.createMany(documents);
 
-    // return updateGS;
+    return updateGS;
   }
 
   @Public()

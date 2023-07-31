@@ -5,11 +5,14 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InventorySavedEvent } from 'src/inventory/events/inventory-saved.event';
 import { OrdersReceivedEvent } from '../events/orders-received.event';
+import { ShopifyService } from '../shopify.service';
+import { StoresService } from 'src/stores/stores.service';
 
 @Injectable()
 export class InvenotrySavedListener {
   constructor(
-    // private shopifyapi: ShopifyService,
+    private shopifyapi: ShopifyService,
+    private storeService: StoresService,
     private configSevice: ConfigService,
     private eventEmitter: EventEmitter2,
   ) {}
@@ -104,7 +107,10 @@ export class InvenotrySavedListener {
 
   //     // console.log(event);
   //     console.log(JSON.stringify(qres));
-  //     // console.log(qres.body['data']['bulkOperationRunQuery']['bulkOperation']);
+  //     console.log(
+  //       'orderbulk',
+  //       qres.body['data']['bulkOperationRunQuery']['bulkOperation'],
+  //     );
   //     // const dopoll = true;
   //     if (
   //       qres.body['data']['bulkOperationRunQuery']['bulkOperation'][
@@ -145,6 +151,15 @@ export class InvenotrySavedListener {
   //           ordersReceivedEvent.accessToken = accessToken;
 
   //           this.eventEmitter.emit('orders.received', ordersReceivedEvent);
+  //         } else if (
+  //           poll.body['data']['currentBulkOperation']['status'] === 'FAILED'
+  //         ) {
+  //           clearInterval(pollit);
+  //           Logger.error(
+  //             { message: 'Order bulk failed' },
+  //             'inventory-saved.listener.ts:156 ~ InvenotrySavedListener ',
+  //             InvenotrySavedListener.name,
+  //           );
   //         }
   //       }, 3000);
   //     } else console.log(JSON.stringify(qres.body['data']));
@@ -154,198 +169,114 @@ export class InvenotrySavedListener {
   //   }
   // }
 
-  // @OnEvent('inventory.saved')
-  // async registerWebhooks(event: InventorySavedEvent) {
-  //   try {
-  //     const { shop, accessToken } = event;
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/product-create',
-  //         'PRODUCTS_CREATE',
-  //       )
-  //       .then(() => {
-  //         console.log('webhook PRODUCTS_CREATE-> registered for shop', shop);
-  //       });
+  @OnEvent('inventory.saved')
+  async registerWebhooks(event: InventorySavedEvent) {
+    try {
+      const { shop } = event;
+      const session = await this.storeService.loadStoreSession(shop);
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/uninstalled',
-  //         'APP_UNINSTALLED',
-  //       )
-  //       .then(() => {
-  //         console.log('webhook APP_UNINSTALLED-> registered for shop', shop);
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/product-create',
+        'PRODUCTS_CREATE',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/product-update',
-  //         'PRODUCTS_UPDATE',
-  //       )
-  //       .then(() => {
-  //         console.log('webhook PRODUCTS_UPDATE-> registered for shop', shop);
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/uninstalled',
+        'APP_UNINSTALLED',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/order-create',
-  //         'ORDERS_CREATE',
-  //       )
-  //       .then(() => {
-  //         console.log('webhook ORDERS_CREATE-> registered for shop', shop);
-  //       });
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/product-delete',
-  //         'PRODUCTS_DELETE',
-  //       )
-  //       .then(() => {
-  //         console.log('webhook PRODUCTS_DELETE-> registered for shop', shop);
-  //       });
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/customer-update',
-  //         'CUSTOMERS_UPDATE',
-  //       )
-  //       .then(() => {
-  //         console.log('webhook CUSTOMERS_UPDATE -> registered for shop', shop);
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/product-update',
+        'PRODUCTS_UPDATE',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/collection-create',
-  //         'COLLECTIONS_CREATE',
-  //       )
-  //       .then(() => {
-  //         console.log('webhook CUSTOMERS_UPDATE -> registered for shop', shop);
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/order-create',
+        'ORDERS_CREATE',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/collection-delete',
-  //         'COLLECTIONS_DELETE',
-  //       )
-  //       .then(() => {
-  //         console.log(
-  //           'webhook COLLECTIONS_DELETE -> registered for shop',
-  //           shop,
-  //         );
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/product-delete',
+        'PRODUCTS_DELETE',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/bulk-finish',
-  //         'BULK_OPERATIONS_FINISH',
-  //       )
-  //       .then(() => {
-  //         console.log(
-  //           'webhook BULK_OPERATIONS_FINISH -> registered for shop',
-  //           shop,
-  //         );
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/customer-update',
+        'CUSTOMERS_UPDATE',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/collection-update',
-  //         'COLLECTIONS_UPDATE',
-  //       )
-  //       .then(() => {
-  //         console.log(
-  //           'webhook COLLECTIONS_UPDATE -> registered for shop',
-  //           shop,
-  //         );
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/collection-create',
+        'COLLECTIONS_CREATE',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/billing-failure',
-  //         'SUBSCRIPTION_BILLING_ATTEMPTS_FAILURE',
-  //       )
-  //       .then(() => {
-  //         console.log(
-  //           'webhook SUBSCRIPTION_BILLING_ATTEMPTS_FAILURE -> registered for shop',
-  //           shop,
-  //         );
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/collection-delete',
+        'COLLECTIONS_DELETE',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/billing-success',
-  //         'SUBSCRIPTION_BILLING_ATTEMPTS_SUCCESS',
-  //       )
-  //       .then(() => {
-  //         console.log(
-  //           'webhook SUBSCRIPTION_BILLING_ATTEMPTS_SUCCESS -> registered for shop',
-  //           shop,
-  //         );
-  //       })
-  //       .catch((rr) => {
-  //         console.log(
-  //           'webhook SUBSCRIPTION_BILLING_ATTEMPTS_SUCCESS -> registered for shop',
-  //           shop,
-  //           rr,
-  //         );
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/bulk-finish',
+        'BULK_OPERATIONS_FINISH',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/app-subscription',
-  //         'APP_SUBSCRIPTIONS_UPDATE',
-  //       )
-  //       .then(() => {
-  //         console.log(
-  //           'webhook APP_SUBSCRIPTIONS_UPDATE -> registered for shop',
-  //           shop,
-  //         );
-  //       })
-  //       .catch((rr) => {
-  //         console.log(
-  //           'webhook APP_SUBSCRIPTIONS_UPDATE -> registered for shop',
-  //           shop,
-  //           rr,
-  //         );
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/collection-update',
+        'COLLECTIONS_UPDATE',
+        session,
+      );
 
-  //     this.shopifyapi
-  //       .registerHook(
-  //         shop,
-  //         accessToken,
-  //         '/webhooks/order-updated',
-  //         'ORDERS_UPDATED',
-  //       )
-  //       .then(() => {
-  //         console.log('webhook ORDERS_UPDATED-> registered for shop', shop);
-  //       });
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/billing-failure',
+        'SUBSCRIPTION_BILLING_ATTEMPTS_FAILURE',
+        session,
+      );
 
-  //     console.log('webhook registered');
-  //   } catch (err) {
-  //     console.log(JSON.stringify(err));
-  //     Logger.error(err, InvenotrySavedListener.name);
-  //   }
-  // }
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/billing-success',
+        'SUBSCRIPTION_BILLING_ATTEMPTS_SUCCESS',
+        session,
+      );
+
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/app-subscription',
+        'APP_SUBSCRIPTIONS_UPDATE',
+        session,
+      );
+
+      await this.shopifyapi.registerHook(
+        shop,
+        '/webhooks/order-updated',
+        'ORDERS_UPDATED',
+        session,
+      );
+
+      console.log('webhook registered');
+    } catch (err) {
+      console.log(JSON.stringify(err));
+      Logger.error(err, InvenotrySavedListener.name);
+    }
+  }
 }

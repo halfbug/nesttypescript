@@ -10,11 +10,13 @@ import { APP_GUARD } from '@nestjs/core';
 import { Public } from './public.decorator';
 import { AdminUsersModule } from 'src/admin-users/admin-users.module';
 import { AdminRolesModule } from 'src/admin-roles/admin-roles.module';
+import { ShopifyModule } from 'src/shopify/shopify.module';
 
 @Global()
 @Module({
   imports: [
-    StoresModule,
+    forwardRef(() => ShopifyModule),
+    forwardRef(() => StoresModule),
     ConfigModule,
     AdminUsersModule,
     AdminRolesModule,

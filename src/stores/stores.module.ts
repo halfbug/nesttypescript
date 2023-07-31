@@ -13,7 +13,7 @@ import { StoreSavedEvent } from './events/store-saved.event';
 import { UninstallService } from './uninstall.service';
 // import { CampaignsModule } from 'src/campaigns/campaigns.module';
 import { InventoryModule } from 'src/inventory/inventory.module';
-// import { ShopifyStoreModule } from 'src/shopify-store/shopify-store.module';
+import { ShopifyModule } from 'src/shopify/shopify.module';
 import { GsCommonModule } from 'src/gs-common/gs-common.module';
 import { StoreUpdatePlanCron } from './store.cron';
 import { DropsGroupshopModule } from 'src/drops-groupshop/drops-groupshop.module';
@@ -23,7 +23,7 @@ import { DropsGroupshopModule } from 'src/drops-groupshop/drops-groupshop.module
     TypeOrmModule.forFeature([Store]),
     // AnyScalar,
     DefaultColumnsService,
-    // forwardRef(() => ShopifyStoreModule),
+    ShopifyModule,
     InventoryModule,
     forwardRef(() => DropsGroupshopModule),
     GsCommonModule,

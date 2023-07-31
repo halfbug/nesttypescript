@@ -42,7 +42,7 @@ export class SyncCollectionCron {
               collectionUpdateStatus: CollectionUpdateEnum.PROGRESS,
               id: store.id,
             });
-            // await this.inventryService.runSyncCollectionCron(store);
+            await this.inventryService.runSyncCollectionCron(store);
           }
         }
       } catch (error) {

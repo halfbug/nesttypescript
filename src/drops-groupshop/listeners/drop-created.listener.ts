@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+import { OnEvent } from '@nestjs/event-emitter';
 import { StoresService } from 'src/stores/stores.service';
 import { DropsGroupshopService } from 'src/drops-groupshop/drops-groupshop.service';
 import { EncryptDecryptService } from 'src/utils/encrypt-decrypt/encrypt-decrypt.service';
@@ -12,13 +11,10 @@ import {
 } from 'src/drops-groupshop/dto/create-drops-groupshop.input';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { DropCreatedEvent } from '../events/drop-created.event';
-import { Product } from 'src/inventory/entities/product.entity';
 
 @Injectable()
 export class DropCreatedListener {
   constructor(
-    // private shopifyService: ShopifyService,
-    private eventEmitter: EventEmitter2,
     private configSevice: ConfigService,
     private crypt: EncryptDecryptService,
     private dropsGroupshopService: DropsGroupshopService,

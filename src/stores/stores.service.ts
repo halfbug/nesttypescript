@@ -1,21 +1,19 @@
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { getMongoManager, Like, MongoRepository } from 'typeorm';
+import { MongoRepository } from 'typeorm';
 import { CreateStoreInput } from './dto/create-store.input';
 import { UpdateStoreInput } from './dto/update-store.input';
-import Store, { CollectionsToUpdate } from './entities/store.model';
+import Store, {
+  CollectionsToUpdate,
+  StoreWithSession,
+} from './entities/store.model';
 import { v4 as uuid } from 'uuid';
-import {
-  CodeUpdateStatusTypeEnum,
-  CollectionUpdateEnum,
-  Resource,
-} from './entities/store.entity';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
-import { InventoryService } from 'src/inventory/inventory.service';
-import { Product } from 'src/inventory/entities/product.entity';
-import { DropsGroupshopService } from 'src/drops-groupshop/drops-groupshop.service';
+import { CollectionUpdateEnum, Resource } from './entities/store.entity';
+
 import { DropsCollectionUpdatedEvent } from 'src/drops-groupshop/events/drops-collection-update.event';
 import { SearchIndexingRefreshEvent } from 'src/inventory/events/searchIndexing-refresh.event';
+import { ShopifyService } from 'src/shopify/shopify.service';
+import { Session } from '@shopify/shopify-api';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const _ = require('lodash');
 
@@ -23,16 +21,13 @@ const _ = require('lodash');
 export class StoresService {
   constructor(
     @InjectRepository(Store) private storeRepository: MongoRepository<Store>,
-    // private shopifyapi: ShopifyService,
-    @Inject(forwardRef(() => DropsGroupshopService))
-    @Inject(forwardRef(() => InventoryService))
-    private dropsService: DropsGroupshopService,
     private dropsCollectionUpdatedEvent: DropsCollectionUpdatedEvent,
-    private inventoryService: InventoryService,
     public searchIndexingRefreshEvent: SearchIndexingRefreshEvent,
+    @Inject(forwardRef(() => ShopifyService))
+    private shopifyapi: ShopifyService,
   ) {}
 
-  static formatSpotlightDiscountTitle(name: string) {
+  formatSpotlightDiscountTitle(name: string) {
     return `GSL${name}`;
   }
 
@@ -42,7 +37,9 @@ export class StoresService {
     return this.storeRepository.save(store);
   }
 
-  async createORupdate(createStoreInput: UpdateStoreInput): Promise<Store> {
+  async createORupdate(
+    createStoreInput: UpdateStoreInput,
+  ): Promise<StoreWithSession> {
     const { id } = createStoreInput;
     console.log(
       '🚀 ~ file: stores.service.ts ~ line 23 ~ StoresService ~ createORupdate ~ id',
@@ -60,7 +57,7 @@ export class StoresService {
     const dates = sid
       ? { createdAt: new Date(), updatedAt: new Date() }
       : { updatedAt: new Date() };
-    // const manager = getMongoManager();
+
     try {
       await this.storeRepository.updateOne(
         { id },
@@ -89,13 +86,41 @@ export class StoresService {
   }
 
   async findById(id: string) {
-    return this.storeRepository.findOne({ where: { id } });
+    return await this.withStoreSession(
+      await this.storeRepository.findOne({ where: { id } }),
+    );
   }
 
-  findOne(shop: string) {
-    return this.storeRepository.findOne({ where: { shop } });
+  async findOne(shop: string): Promise<StoreWithSession> {
+    return await this.withStoreSession(
+      await this.storeRepository.findOne({ where: { shop } }),
+    );
   }
 
+  async loadStoreSession(shop: string): Promise<Session> {
+    const {
+      accessToken,
+      shopifySessionId: id,
+      state,
+    } = await this.storeRepository.findOne({ where: { shop } });
+    return await this.shopifyapi.getSessionFromStorage(
+      id,
+      shop,
+      accessToken,
+      state,
+    );
+  }
+
+  async withStoreSession(store): Promise<StoreWithSession> {
+    const { accessToken, shopifySessionId: id, state, shop } = store;
+    const session = await this.shopifyapi.getSessionFromStorage(
+      id,
+      shop,
+      accessToken,
+      state,
+    );
+    return { ...store, session };
+  }
   async findOneWithCampaings(shop: string) {
     // const manager = getMongoManager();
     const agg = [
@@ -980,22 +1005,23 @@ export class StoresService {
         spotlightDiscount: { percentage },
         spotlightColletionId,
       },
+      session,
     } = await this.findById(storeId);
     // const spotlightProducts =
     //   await this.inventoryService.getProductsByCollectionIDs(shop, [
     //     spotlightColletionId,
     //   ], false);
 
-    // const discountCode = await this.shopifyapi.setAutomaticDiscountCode(
-    //   shop,
-    //   'Create',
-    //   accessToken,
-    //   StoresService.formatSpotlightDiscountTitle(_id),
-    //   parseInt(percentage, 10),
-    //   [spotlightColletionId],
-    //   null,
-    //   new Date(),
-    // );
+    const discountCode = await this.shopifyapi.setAutomaticDiscountCode(
+      shop,
+      'Create',
+      session,
+      this.formatSpotlightDiscountTitle(_id),
+      parseInt(percentage, 10),
+      [spotlightColletionId],
+      null,
+      new Date(),
+    );
 
     // For Update
 

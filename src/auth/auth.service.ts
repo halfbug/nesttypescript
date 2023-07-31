@@ -1,40 +1,19 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
-import { StoresService } from 'src/stores/stores.service';
-import { LoginAuthDto } from './dto/login-auth.dto';
-import { Request, Response } from 'express';
+// import { ShopifyService } from 'src/shopify/shopify.service';
 import { ConfigService } from '@nestjs/config';
 import Store from 'src/stores/entities/store.model';
 import { JwtService } from '@nestjs/jwt';
 import { AuthEntity } from './entities/auth.entity';
+import { ShopifyService } from 'src/shopify/shopify.service';
 // import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private storesService: StoresService,
-    // private shopifyService: ShopifyService,
+    private shopifyService: ShopifyService,
     private configService: ConfigService,
     private jwtService: JwtService,
   ) {}
-  async loginOnline(req: Request, res: Response, store: string) {
-    // const authRoute = await this.shopifyService.beginAuth(
-    //   req,
-    //   res,
-    //   store,
-    //   '/auth/callback',
-    //   true,
-    // );
-    // console.log(
-    //   '🚀 ~ file: auth.service.ts ~ line 22 ~ AuthService ~ loginOnline ~ authRoute',
-    //   authRoute,
-    // );
-    // return authRoute;
-  }
-
-  async validate(req: Request, res: Response) {
-    // return await this.shopifyService.validateAuth(req, res);
-  }
 
   goToAppfront(store: Store) {
     const { shop, installationStep, subscription } = store;
@@ -78,16 +57,16 @@ export class AuthService {
   }
 
   async verifyToken(tokenData: any) {
-    //this.shopifyService.accessToken = tokenData.accessToken;
-    //this.shopifyService.shop = tokenData.shop;
     try {
-      // const shopRec = await this.shopifyService.storeDetail();
+      const shopRec = await this.shopifyService.storeDetail(
+        JSON.parse(tokenData),
+      );
       // console.log(
       //   '🚀 ~ file: auth.controller.ts ~ line 118 ~ AuthController ~ verify ~ shopRec',
       //   shopRec,
       // );
       // res.send({ ...tokenData.user });
-      // return { status: true, ...tokenData.user };
+      return { status: true, ...tokenData.user };
     } catch (err) {
       // console.log(
       //   '🚀 ~ file: auth.service.ts ~ line 89 ~ AuthService ~ verifyToken ~ err',
@@ -104,8 +83,4 @@ export class AuthService {
       return err;
     }
   }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} auth`;
-  // }
 }

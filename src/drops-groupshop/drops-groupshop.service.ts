@@ -3,29 +3,28 @@ import { CreateDropsGroupshopInput } from './dto/create-drops-groupshop.input';
 import { UpdateDropsGroupshopInput } from './dto/update-drops-groupshop.input';
 import { v4 as uuid } from 'uuid';
 import DropsGroupshop from './entities/dropsgroupshop.model';
-import { getMongoManager, MongoRepository } from 'typeorm';
+import { MongoRepository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { StoresService } from 'src/stores/stores.service';
 import { EventType } from 'src/gs-common/entities/lifecycle.modal';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+import { ShopifyService } from 'src/shopify/shopify.service';
 import { FilterOption } from './dto/paginationArgs.input';
 import { PaginationService } from 'src/utils/pagination.service';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { Product } from 'src/inventory/entities/product.entity';
 import DropsCategory from 'src/drops-category/entities/drops-category.model';
 import { DropsCategoryService } from 'src/drops-category/drops-category.service';
-import Store from 'src/stores/entities/store.model';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DropsGroupshopService {
   constructor(
     @InjectRepository(DropsGroupshop)
-    @InjectRepository(DropsCategory)
     private DropsGroupshopRepository: MongoRepository<DropsGroupshop>,
     @Inject(forwardRef(() => StoresService))
     private storesService: StoresService,
-    // private shopifyService: ShopifyService,
+    @Inject(forwardRef(() => ShopifyService))
+    private shopifyService: ShopifyService,
     private paginateService: PaginationService,
     @Inject(forwardRef(() => InventoryService))
     private inventoryService: InventoryService,
@@ -381,25 +380,26 @@ export class DropsGroupshopService {
       drops: {
         rewards: { baseline },
       },
+      session,
     } = await this.storesService.findById(gs.storeId);
     const discountTitle = gs?.discountCode.title;
     const collections = await this.dropsCategoryService.getNonSVCollectionIDs(
       gs.storeId,
     );
-    // const discountCode = await this.shopifyService.setDiscountCode(
-    //   shop,
-    //   'Create',
-    //   accessToken,
-    //   discountTitle,
-    //   parseInt(baseline, 10),
-    //   [...new Set(collections)],
-    //   new Date(),
-    //   null,
-    //   null,
-    //   true,
-    //   true,
-    // );
-    // return discountCode;
+    const discountCode = await this.shopifyService.setDiscountCode(
+      shop,
+      'Create',
+      session,
+      discountTitle,
+      parseInt(baseline, 10),
+      [...new Set(collections)],
+      new Date(),
+      null,
+      null,
+      true,
+      true,
+    );
+    return discountCode;
   }
 
   findAllNullDiscounts() {

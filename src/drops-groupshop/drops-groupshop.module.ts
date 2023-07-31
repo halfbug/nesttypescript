@@ -6,7 +6,7 @@ import DropsGroupshop from './entities/dropsgroupshop.model';
 import { DefaultColumnsService } from 'src/utils/default-columns/default-columns.service';
 import { EmailModule } from 'src/email/email.module';
 import { GsCommonModule } from 'src/gs-common/gs-common.module';
-// import { ShopifyStoreModule } from 'src/shopify-store/shopify-store.module';
+// import { ShopifyModule } from 'src/shopify/shopify.module';
 import { StoresModule } from 'src/stores/stores.module';
 import { InventoryModule } from 'src/inventory/inventory.module';
 import { HttpModule } from '@nestjs/axios';
@@ -20,12 +20,13 @@ import { DropsCollectionUpdatedListener } from './listeners/drops-collection-upd
 import { DropsCategoryModule } from 'src/drops-category/drops-category.module';
 import { DiscountCron } from './discount.cron';
 import { AppLoggerModule } from 'src/applogger/applogger.module';
+import { ShopifyModule } from 'src/shopify/shopify.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([DropsGroupshop]),
     HttpModule,
-    // forwardRef(() => ShopifyStoreModule),
+    forwardRef(() => ShopifyModule),
     forwardRef(() => StoresModule),
     forwardRef(() => EmailModule),
     forwardRef(() => GsCommonModule),

@@ -8,7 +8,7 @@ import { UpdateInventoryInput } from './dto/update-inventory.input';
 import Inventory from './entities/inventory.modal';
 import { ProductVariant } from './entities/product.entity';
 import { StoresService } from 'src/stores/stores.service';
-// import { ShopifyService } from 'src/shopify/shopify/shopify.service';
+import { ShopifyService } from 'src/shopify/shopify.service';
 import { HttpService } from '@nestjs/axios';
 import { log } from 'console';
 import readJsonLines from 'read-json-lines-sync';
@@ -63,7 +63,7 @@ export class InventoryService {
     private inventoryRepository: MongoRepository<Inventory>, // private inventoryManager: EntityManager,
     @Inject(forwardRef(() => StoresService))
     private storeService: StoresService,
-    // private shopifyService: ShopifyService,
+    private shopifyService: ShopifyService,
     @Inject(forwardRef(() => DropsCategoryService))
     private dropsCategoryService: DropsCategoryService,
     private httpService: HttpService,
@@ -1108,91 +1108,103 @@ export class InventoryService {
   }
 
   // CRON FUNCTIONS START
-  // async runSyncCollectionCron(store: any) {
-  //   try {
-  //     const { shop, accessToken, collectionsToUpdate, id } = store;
-  //     if (store?.drops && store?.drops?.status == 'Active') {
-  //       const client = await this.shopifyService.client(shop, accessToken);
+  async runSyncCollectionCron(store: any) {
+    try {
+      const {
+        shop,
+        accessToken,
+        collectionsToUpdate,
+        shopifySessionId: id,
+        state,
+      } = store;
+      if (store?.drops && store?.drops?.status == 'Active') {
+        const session = await this.shopifyService.getSessionFromStorage(
+          shop,
+          accessToken,
+          id,
+          state,
+        );
+        const client = await this.shopifyService.client(session);
 
-  //       if (!collectionsToUpdate.length) {
-  //         log('No collections to update');
-  //       }
+        if (!collectionsToUpdate.length) {
+          log('No collections to update');
+        }
 
-  //       const queryString = collectionsToUpdate
-  //         .map((collection) => {
-  //           if (collection.isSynced === false) {
-  //             return `(title:${collection.collectionTitle})`;
-  //           }
-  //         })
-  //         .join(' OR ');
+        const queryString = collectionsToUpdate
+          .map((collection) => {
+            if (collection.isSynced === false) {
+              return `(title:${collection.collectionTitle})`;
+            }
+          })
+          .join(' OR ');
 
-  //       await client
-  //         .query({
-  //           data: {
-  //             query: `mutation {
-  //   bulkOperationRunQuery(
-  //     query:"""
-  //     {
-  //         collections(first: 1000, query: "${queryString}") {
-  //           edges {
-  //             node {
-  //               id
-  //               title
-  //               productsCount
-  //               descriptionHtml
-  //               ruleSet {
-  //                 rules {
-  //                   condition
-  //                   column
-  //                   relation
-  //                 }
-  //               }
-  //               sortOrder
-  //               image {
-  //                 src
-  //               }
-  //               products(first:10000,sortKey:COLLECTION_DEFAULT){
-  //                 edges{
-  //                   node{
-  //                     title
-  //                     id
-  //                     status
-  //                     createdAt
-  //                   }
-  //                 }
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     """
-  //   ) {
-  //     bulkOperation {
-  //       id
-  //       status
-  //     }
-  //     userErrors {
-  //       field
-  //       message
-  //     }
-  //   }
-  // }`,
-  //           },
-  //         })
-  //         .then((res) => {
-  //           const bulkOperationId =
-  //             res.body['data']['bulkOperationRunQuery']['bulkOperation']['id'];
-  //           Logger.log(
-  //             `collection to update bulk register with id - ${bulkOperationId}`,
-  //             'COLLECTIONTOUPDATBULK',
-  //             true,
-  //           );
-  //         });
-  //     }
-  //   } catch (err) {
-  //     Logger.error(err, 'SYNC_COLLECTION_SERVICE');
-  //   }
-  // }
+        await client
+          .query({
+            data: {
+              query: `mutation {
+    bulkOperationRunQuery(
+      query:"""
+      {
+          collections(first: 1000, query: "${queryString}") {
+            edges {
+              node {
+                id
+                title
+                productsCount
+                descriptionHtml
+                ruleSet {
+                  rules {
+                    condition
+                    column
+                    relation
+                  }
+                }
+                sortOrder
+                image {
+                  src
+                }
+                products(first:10000,sortKey:COLLECTION_DEFAULT){
+                  edges{
+                    node{
+                      title
+                      id
+                      status
+                      createdAt
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      """
+    ) {
+      bulkOperation {
+        id
+        status
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }`,
+            },
+          })
+          .then((res) => {
+            const bulkOperationId =
+              res.body['data']['bulkOperationRunQuery']['bulkOperation']['id'];
+            Logger.log(
+              `collection to update bulk register with id - ${bulkOperationId}`,
+              'COLLECTIONTOUPDATBULK',
+              true,
+            );
+          });
+      }
+    } catch (err) {
+      Logger.error(err, 'SYNC_COLLECTION_SERVICE');
+    }
+  }
 
   async pollIt(client, id, shop) {
     let poll;

@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+import { ShopifyService } from 'src/shopify/shopify.service';
 import { UpdateStoreInput } from 'src/stores/dto/update-store.input';
 import { CodeUpdateStatusTypeEnum } from 'src/stores/entities/store.entity';
 import { StoresService } from 'src/stores/stores.service';
@@ -9,7 +9,8 @@ import { DropsCollectionUpdatedEvent } from '../events/drops-collection-update.e
 @Injectable()
 export class DropsCollectionUpdatedListener {
   constructor(
-    // private shopifyapi: ShopifyService,
+    @Inject(forwardRef(() => ShopifyService))
+    private shopifyapi: ShopifyService,
     private storesService: StoresService,
   ) {}
 
@@ -17,7 +18,7 @@ export class DropsCollectionUpdatedListener {
   async updateDropsDiscountCodes({
     dropsGroupshops,
     shop,
-    accessToken,
+    session,
     collections,
     storeId,
     drops,
@@ -29,18 +30,18 @@ export class DropsCollectionUpdatedListener {
         true,
       );
       for (const dg of dropsGroupshops) {
-        // const discountCode = await this.shopifyapi.setDiscountCode(
-        //   shop,
-        //   'Update',
-        //   accessToken,
-        //   dg.discountCode.title,
-        //   null,
-        //   [...new Set(collections)],
-        //   null,
-        //   null,
-        //   dg.discountCode.priceRuleId,
-        //   true,
-        // );
+        const discountCode = await this.shopifyapi.setDiscountCode(
+          shop,
+          'Update',
+          session,
+          dg.discountCode.title,
+          null,
+          [...new Set(collections)],
+          null,
+          null,
+          dg.discountCode.priceRuleId,
+          true,
+        );
       }
       Logger.log(
         'Discount Code Bulk Update Completed.....',

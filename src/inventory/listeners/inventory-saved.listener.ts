@@ -20,10 +20,6 @@ export class InventorySavedListener {
 
   @OnEvent('inventory.*')
   async countProductInventory(event: InventorySavedEvent) {
-    console.log(
-      '🚀 ~ file: inventory-saved.listener.ts:20 ~ InventorySavedListener ~ countProductInventory ~ event',
-      event,
-    );
     if (event.type && ['saved', 'outofstock'].includes(event.type)) {
       const StoreProducts: (Inventory & { variants?: any })[] =
         await this.inventoryService.findAllProducts(event.shop);
@@ -56,7 +52,7 @@ export class InventorySavedListener {
       await this.inventoryService.setPurchaseCount(blukWrite);
       console.log('Product out of stock updated...');
       this.inventoryDoneEvent.shop = event.shop;
-      this.inventoryDoneEvent.accessToken = event.accessToken;
+      this.inventoryDoneEvent.session = event.session;
       this.inventoryDoneEvent.emit();
     }
   }

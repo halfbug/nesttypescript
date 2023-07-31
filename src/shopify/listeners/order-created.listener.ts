@@ -1,9 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-// import { ShopifyService } from '../shopify/shopify.service';
-import { AddResourceEvent } from 'src/stores/events/add-resource.event';
-import { StoreSavedEvent } from 'src/stores/events/store-saved.event';
 import { OrderCreatedEvent } from '../events/order-created.event';
 import { OrdersService } from 'src/inventory/orders.service';
 import {
@@ -13,14 +10,14 @@ import {
 } from 'src/inventory/dto/create-order.input';
 import { OrderPlacedEvent } from '../events/order-placed.envent';
 import { StoresService } from 'src/stores/stores.service';
-import { UpdateInventoryInput } from 'src/inventory/dto/update-inventory.input';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { DropsGroupshopService } from 'src/drops-groupshop/drops-groupshop.service';
+import { ShopifyService } from '../shopify.service';
 
 @Injectable()
 export class OrderCreatedListener {
   constructor(
-    // private shopifyapi: ShopifyService,
+    private shopifyapi: ShopifyService,
     private orderService: OrdersService,
     private eventEmitter: EventEmitter2,
     private configSevice: ConfigService,
@@ -164,7 +161,7 @@ export class OrderCreatedListener {
     try {
       const { shop, webhook } = event;
       const whOrder = webhook;
-      const { accessToken, drops: { cartRewards } = { cartRewards: [] } } =
+      const { session, drops: { cartRewards } = { cartRewards: [] } } =
         await this.storesService.findOne(shop);
 
       const refferalId = whOrder.note_attributes.length
@@ -201,13 +198,13 @@ export class OrderCreatedListener {
             .map((cr) => cr.rewardTitle);
         }
 
-        // await this.shopifyapi.addTagsToOrder(
-        //   shop,
-        //   accessToken,
-        //   tags?.length ? tags : [],
-        //   note,
-        //   whOrder.admin_graphql_api_id,
-        // );
+        await this.shopifyapi.addTagsToOrder(
+          shop,
+          session,
+          tags?.length ? tags : [],
+          note,
+          whOrder.admin_graphql_api_id,
+        );
       }
     } catch (err) {
       Logger.error(err, OrderCreatedListener.name);

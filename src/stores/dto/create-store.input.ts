@@ -319,9 +319,6 @@ export class CreateStoreInput {
   @Field({ nullable: true })
   appTrialEnd: Date;
 
-  @Field({ nullable: true })
-  tierRecurringDate: Date;
-
   @Field(() => DiscoveryToolsInput, { nullable: true })
   discoveryTool?: DiscoveryToolsInput;
 
@@ -342,4 +339,7 @@ export class CreateStoreInput {
 
   @Field(() => CollectionUpdateEnum)
   collectionUpdateStatus?: CollectionUpdateEnum;
+
+  @Field({ nullable: true })
+  state?: string;
 }

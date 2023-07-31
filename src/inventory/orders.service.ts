@@ -61,7 +61,10 @@ export class OrdersService {
 
     return await this.ordersRepository.aggregate(agg).toArray();
   }
-  async getPurchasedProductsLastSixMonth(shop: string, nowdate: Date) {
+  async getPurchasedProductsLastSixMonth(
+    shop: string,
+    nowdate: Date,
+  ): Promise<(Orders & { purchaseCount?: string })[]> {
     const agg = [
       {
         $match: {

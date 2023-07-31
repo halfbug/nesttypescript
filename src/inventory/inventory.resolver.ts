@@ -1,4 +1,4 @@
-import { Resolver, Query, Args, Info } from '@nestjs/graphql';
+import { Resolver, Query, Args, Info, Mutation } from '@nestjs/graphql';
 import { InventoryService } from './inventory.service';
 import {
   CollectionListOfShop,
@@ -17,15 +17,20 @@ import { Public } from 'src/auth/public.decorator';
 import { StoresService } from 'src/stores/stores.service';
 import { CollectionUpdateEnum } from 'src/stores/entities/store.entity';
 // import { GetLocationsInput } from './dto/create-inventory.input';
-// import { ShopifyService } from 'src/shopify-store/shopify/shopify.service';
+// import { ShopifyService } from 'src/shopify/shopify.service';
 // import { ProductsPaginated } from './entities/products-paginated.entity';
 import { ProductsPaginatedArgs } from './dto/products-paginated.input';
+import { ProductsPaginated } from './entities/products-paginated.entity';
+import { UpdateInventoryInput } from './dto/update-inventory.input';
+import { GetLocationsInput } from './dto/create-inventory.input';
+import { ShopifyService } from 'src/shopify/shopify.service';
 @UseGuards(AuthGuard)
 @Resolver(() => Inventory)
 export class InventoryResolver {
   constructor(
     private readonly inventoryService: InventoryService,
-    private readonly storeService: StoresService, // private shopifyapi: ShopifyService,
+    private readonly storeService: StoresService,
+    private shopifyapi: ShopifyService,
   ) {}
 
   @Query(() => TotalProducts, { name: 'TotalProducts' })
@@ -131,43 +136,40 @@ export class InventoryResolver {
     return temp[0];
   }
 
-  // @Public()
-  // @Query(() => GetLocationsOutput, { name: 'getLocations' })
-  // async getLocations(
-  //   @Args('getLocationsInput') getLocationsInput: GetLocationsInput,
-  // ) {
-  //   const { shop, variantIds } = getLocationsInput;
+  @Public()
+  @Query(() => GetLocationsOutput, { name: 'getLocations' })
+  async getLocations(
+    @Args('getLocationsInput') getLocationsInput: GetLocationsInput,
+  ) {
+    const { shop, variantIds } = getLocationsInput;
 
-  //   const { accessToken } = await this.storeService.findOne(shop);
+    const { session } = await this.storeService.findOne(shop);
 
-  //   const locations = await this.shopifyapi.getLocationsByVariantIds(
-  //     shop,
-  //     variantIds,
-  //     accessToken,
-  //   );
+    const locations = await this.shopifyapi.getLocationsByVariantIds(
+      shop,
+      variantIds,
+      session,
+    );
 
-  //   return { locations };
-  // }
+    return { locations };
+  }
 
-  // @Public()
-  // @Query(() => ProductsPaginated, { name: 'getPaginatedProducts' })
-  // async getDrops(@Args('productArgs') productArgs: ProductsPaginatedArgs) {
-  //   // console.log(
-  //   //   '🚀 ~ file: inventory.resolver.ts:145 ~ InventoryResolver ~ getDrops ~ productArgs:',
-  //   //   productArgs,
-  //   // );
-  //   return await this.inventoryService.getPaginatedProductsByCollectionIDs(
-  //     productArgs,
-  //   );
-  // }
+  @Public()
+  @Query(() => ProductsPaginated, { name: 'getPaginatedProducts' })
+  async getDrops(@Args('productArgs') productArgs: ProductsPaginatedArgs) {
+    // console.log(
+    //   '🚀 ~ file: inventory.resolver.ts:145 ~ InventoryResolver ~ getDrops ~ productArgs:',
+    //   productArgs,
+    // );
+    return await this.inventoryService.getPaginatedProductsByCollectionIDs(
+      productArgs,
+    );
+  }
   // @Mutation(() => Inventory)
   // updateInventory(
   //   @Args('updateInventoryInput') updateInventoryInput: UpdateInventoryInput,
   // ) {
-  //   return this.inventoryService.update(
-  //     updateInventoryInput.id,
-  //     updateInventoryInput,
-  //   );
+  //   return this.inventoryService.update(updateInventoryInput);
   // }
 
   // @Mutation(() => Inventory)

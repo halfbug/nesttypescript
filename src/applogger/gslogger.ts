@@ -53,6 +53,7 @@ export class Gslogger extends ConsoleLogger {
     elog.level = 'error';
     this.apploggerService.create(elog);
   }
+
   warn(message: any, context?: string) {
     super.warn(message, context);
     const elog = new CreateAppLoggerInput();

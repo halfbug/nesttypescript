@@ -13,7 +13,7 @@ async function bootstrap() {
   app.enableCors();
 
   // enable validation globally
-  // this is from NestJS docs
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: false,
@@ -22,9 +22,8 @@ async function bootstrap() {
   );
 
   // enable DI for class-validator
-  // this is an important step, for further steps in this article
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
-
+  const port = process.env.PORT || 5000;
   await app.listen(5000);
 }
 bootstrap();

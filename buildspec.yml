@@ -1,27 +1,17 @@
 version: 0.2
-#testing 
 phases:
-  pre_build:
+  install:
     commands:
-      - echo Logging in to Amazon ECR...
-      - aws --version
-      - echo $AWS_DEFAULT_REGION
-      - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
-      - REPOSITORY_URI=984077295172.dkr.ecr.us-east-1.amazonaws.com/gs-ecs-node-api-stage
-      - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
-      - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - npm install
   build:
     commands:
-      - echo Build started on `date`
-      - echo Building the Docker image...
-      - docker login -u nirajvisana -p 975c5aef-1325-4316-91be-f86329560346
-      - docker build -t $REPOSITORY_URI:latest .
-      - docker tag ${REPOSITORY_URI}:latest ${REPOSITORY_URI}:${IMAGE_TAG}
+      - npm run build
   post_build:
     commands:
-      - echo Build completed on `date`
-      - docker push 984077295172.dkr.ecr.us-east-1.amazonaws.com/gs-ecs-node-api-stage:latest
-      - docker push ${REPOSITORY_URI}:${IMAGE_TAG}
-      - printf '[{"name":"nginx_API_node_stage","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - cp -R node_modules/ dist/node_modules # nodejs needs this
+      - cp Procfile dist/Procfile # EBS needs this
 artifacts:
-    files: imagedefinitions.json
+  files:
+    - "**/*"
+  discard-paths: no
+  base-directory: dist

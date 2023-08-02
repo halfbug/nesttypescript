@@ -168,10 +168,11 @@ export class DropsGroupshopResolver {
         const shortURL = groupshop.shortUrl;
         const klaviyoId = groupshop.customerDetail.klaviyoId;
 
-        const currentProfile = await this.kalavioService.getProfilesById(
-          klaviyoId,
-          groupshop.storeId,
-        );
+        const currentProfile: { data: any } =
+          (await this.kalavioService.getProfilesById(
+            klaviyoId,
+            groupshop.storeId,
+          )) as { data: any };
         const latestShortUrl =
           currentProfile?.data.attributes.properties?.groupshop_url;
         if (shortURL === latestShortUrl) {

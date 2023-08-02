@@ -28,14 +28,14 @@ export class KalavioService {
     };
     this.httpService
       .post(urlKlaviyo, newbody, options)
-      .subscribe(async (res) => {
-        //console.log(res);
+      .subscribe(async (res: any) => {
+        //console.log(res: any);
       });
   }
 
   updateKlaviyoProfileStatus(klaviyoId, shortURL, dgroupshop) {
     if (typeof klaviyoId !== 'undefined') {
-      this.getProfilesById(klaviyoId, dgroupshop.storeId).then((res) => {
+      this.getProfilesById(klaviyoId, dgroupshop.storeId).then((res: any) => {
         const latestShortUrl = res?.data.attributes.properties?.groupshop_url;
         if (shortURL === latestShortUrl) {
           const params = new URLSearchParams({
@@ -59,9 +59,11 @@ export class KalavioService {
         'Content-Type': 'application/json',
       },
     };
-    this.httpService.post(urlKlaviyo, body, options).subscribe(async (res) => {
-      // console.log(res);
-    });
+    this.httpService
+      .post(urlKlaviyo, body, options)
+      .subscribe(async (res: any) => {
+        // console.log(res: any);
+      });
   }
 
   async klaviyoSignUp(createSignUpInput) {
@@ -86,10 +88,10 @@ export class KalavioService {
       ],
     });
     try {
-      const res = await lastValueFrom(
+      const res: any = await lastValueFrom(
         this.httpService
           .post(urlKlaviyo, body, options)
-          .pipe(map((res) => res.data)),
+          .pipe(map((res: any) => res.data)),
       );
       const status = res.length > 0 ? true : false;
 
@@ -123,7 +125,7 @@ export class KalavioService {
         const getProfiles = await lastValueFrom(
           this.httpService
             .get(urlKlaviyo, options)
-            .pipe(map((res) => res.data)),
+            .pipe(map((res: any) => res.data)),
         );
         return getProfiles;
       } catch (err) {
@@ -151,7 +153,9 @@ export class KalavioService {
         },
       };
       const getProfiles = await lastValueFrom(
-        this.httpService.get(urlKlaviyo, options).pipe(map((res) => res.data)),
+        this.httpService
+          .get(urlKlaviyo, options)
+          .pipe(map((res: any) => res.data)),
       );
       return getProfiles;
     } catch (err) {
@@ -179,7 +183,9 @@ export class KalavioService {
         },
       };
       const getProfiles = await lastValueFrom(
-        this.httpService.get(urlKlaviyo, options).pipe(map((res) => res.data)),
+        this.httpService
+          .get(urlKlaviyo, options)
+          .pipe(map((res: any) => res.data)),
       );
       return getProfiles;
     } catch (err) {
@@ -201,8 +207,8 @@ export class KalavioService {
       },
     };
 
-    const getProfile = await lastValueFrom(
-      this.httpService.get(urlKlaviyo).pipe(map((res) => res.data)),
+    const getProfile: any = await lastValueFrom(
+      this.httpService.get(urlKlaviyo).pipe(map((res: any) => res.data)),
     );
     const ProfileId = getProfile?.id || null;
     if (ProfileId !== null) {
@@ -215,7 +221,7 @@ export class KalavioService {
       await lastValueFrom(
         this.httpService
           .put(profileUrlKlaviyo, options)
-          .pipe(map((res) => res.data)),
+          .pipe(map((res: any) => res.data)),
       );
     }
   }
@@ -237,7 +243,7 @@ export class KalavioService {
         await lastValueFrom(
           this.httpService
             .put(profileUrlKlaviyo, options)
-            .pipe(map((res) => res.data)),
+            .pipe(map((res: any) => res.data)),
         );
       } catch (err) {
         console.error(err);
@@ -263,10 +269,10 @@ export class KalavioService {
       title: 'GroupShop',
     });
     try {
-      const res = await lastValueFrom(
+      const res: any = await lastValueFrom(
         this.httpService
           .post(apiUrl, body, options)
-          .pipe(map((res) => res.data)),
+          .pipe(map((res: any) => res.data)),
       );
       return res?.shortURL;
     } catch (err) {
@@ -310,7 +316,7 @@ export class KalavioService {
       const res = await lastValueFrom(
         this.httpService
           .post(urlKlaviyo, body, options)
-          .pipe(map((res) => res.data)),
+          .pipe(map((res: any) => res.data)),
       );
       return res;
     } catch (err) {
@@ -331,7 +337,9 @@ export class KalavioService {
         },
       };
       const getProfiles = await lastValueFrom(
-        this.httpService.get(nextPage, options).pipe(map((res) => res.data)),
+        this.httpService
+          .get(nextPage, options)
+          .pipe(map((res: any) => res.data)),
       );
       return getProfiles;
     } catch (err) {
@@ -349,7 +357,7 @@ export class KalavioService {
       )}${'/lists/'}`;
       try {
         do {
-          const lists = await this.getKlaviyoList(urlKlaviyo, PRIVATE_KEY);
+          const lists: any = await this.getKlaviyoList(urlKlaviyo, PRIVATE_KEY);
           urlKlaviyo = lists?.links?.next ? lists?.links?.next : '';
           lists?.data.forEach((list: any) => {
             const listName = list.attributes.name;
@@ -362,7 +370,7 @@ export class KalavioService {
         } while (urlKlaviyo !== '');
         {
           if (smsListId == '') {
-            const lists = await this.createKlaviyoList(
+            const lists: any = await this.createKlaviyoList(
               'Groupshop SMS Subscribers',
               PRIVATE_KEY,
             );
@@ -416,8 +424,8 @@ export class KalavioService {
       try {
         const res = this.httpService
           .post(urlKlaviyo, body, options)
-          .subscribe(async (res) => {
-            // console.log(res);
+          .subscribe(async (res: any) => {
+            // console.log(res: any);
           });
         return res;
       } catch (err) {

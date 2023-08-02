@@ -93,7 +93,7 @@ export class AuthController {
     res.redirect(
       `${this.configService.get(
         'FRONT',
-      )}/api/login?rurl=${this.authService.goToAppfront(store)}&st=${token}`,
+      )}/auth/login?rurl=${this.authService.goToAppfront(store)}&st=${token}`,
     );
   }
 
@@ -254,7 +254,7 @@ export class AuthController {
       res.status(200).send({
         redirectUrl: `${this.configService.get(
           'FRONT',
-        )}/api/login?rurl=${this.authService.goToAppfront(
+        )}/auth/login?rurl=${this.authService.goToAppfront(
           store,
         )}&st=${newtoken}`,
       });

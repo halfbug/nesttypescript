@@ -1,5 +1,5 @@
 import Orders from 'src/inventory/entities/orders.modal';
-import Store from 'src/stores/entities/store.model';
+import Store, { StoreWithSession } from 'src/stores/entities/store.model';
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 export class KlaviyoProfile {
@@ -17,7 +17,7 @@ export class KlaviyoProfile {
 export class OrderPlacedEvent {
   order: Orders;
   klaviyo: KlaviyoProfile;
-  store: Store;
+  store: StoreWithSession;
   lineItems: any[];
   gsId: string;
 }

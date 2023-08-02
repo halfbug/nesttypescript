@@ -155,11 +155,13 @@ export class StoresService {
   }
 
   async findOneByName(shop: string) {
-    const result = await this.storeRepository.findOne({
-      where: {
-        shop: { $regex: `^${shop}*` },
-      },
-    });
+    const result = await this.withStoreSession(
+      await this.storeRepository.findOne({
+        where: {
+          shop: { $regex: `^${shop}*` },
+        },
+      }),
+    );
     console.log(JSON.stringify(result));
     if (typeof result?.industry === 'string') {
       return { ...result, industry: [result?.industry] };

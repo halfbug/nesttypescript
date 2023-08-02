@@ -326,7 +326,7 @@ export class Store {
   @Field(() => [Category], { nullable: true })
   categories?: Category;
 
-  @Field(() => [Product], { nullable: true })
+  @Field(() => [Product], { nullable: 'itemsAndList' })
   cartSuggested?: Product;
 
   @Field(() => Store, { nullable: true })

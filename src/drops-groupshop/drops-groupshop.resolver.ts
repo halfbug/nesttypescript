@@ -208,7 +208,7 @@ export class DropsGroupshopResolver {
   @Public()
   @Query(() => Store, { name: 'DropGroupshopSections' })
   async getDropsSections() {
-    return await this.dropsGroupshopService.findDropGroupshopSections();
+    return await this.storesService.findDropGroupshopSections();
   }
 
   @Public()

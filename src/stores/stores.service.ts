@@ -14,6 +14,7 @@ import { DropsCollectionUpdatedEvent } from 'src/drops-groupshop/events/drops-co
 import { SearchIndexingRefreshEvent } from 'src/inventory/events/searchIndexing-refresh.event';
 import { ShopifyService } from 'src/shopify/shopify.service';
 import { Session } from '@shopify/shopify-api';
+import { ConfigService } from '@nestjs/config';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const _ = require('lodash');
 
@@ -25,6 +26,7 @@ export class StoresService {
     public searchIndexingRefreshEvent: SearchIndexingRefreshEvent,
     @Inject(forwardRef(() => ShopifyService))
     private shopifyapi: ShopifyService,
+    private configService: ConfigService,
   ) {}
 
   formatSpotlightDiscountTitle(name: string) {
@@ -1054,5 +1056,258 @@ export class StoresService {
     } else {
       return { collectionUpdateStatus: CollectionUpdateEnum.COMPLETE };
     }
+  }
+
+  async findDropGroupshopSections() {
+    const agg = [
+      {
+        $match: {
+          id: this.configService.get('DROPSTORE'),
+        },
+      },
+
+      {
+        $project: {
+          store: '$$ROOT',
+        },
+      },
+      {
+        $addFields: {
+          bestseller: {
+            $arrayElemAt: [
+              {
+                $filter: {
+                  input: '$store.drops.collections',
+                  cond: {
+                    $eq: ['$$this.name', 'bestsellers'],
+                  },
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'bestseller.shopifyId',
+          foreignField: 'id',
+          pipeline: [
+            {
+              $limit: 10,
+            },
+          ],
+          as: 'bestseller',
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'bestseller.parentId',
+          foreignField: 'id',
+          as: 'cartSuggested',
+        },
+      },
+      {
+        $lookup: {
+          from: 'drops_category',
+          localField: 'store.id',
+          foreignField: 'storeId',
+          as: 'categories',
+        },
+      },
+      {
+        $addFields: {
+          firstCategory: {
+            $filter: {
+              input: '$categories',
+              as: 'cat',
+              cond: {
+                $and: [
+                  {
+                    $eq: ['$$cat.parentId', null],
+                  },
+                  {
+                    $eq: ['$$cat.status', 'active'],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          firstCategory: {
+            $arrayElemAt: [
+              '$firstCategory',
+              {
+                $indexOfArray: [
+                  '$firstCategory.sortOrder',
+                  {
+                    $min: '$firstCategory.sortOrder',
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          categories: {
+            $map: {
+              input: '$categories',
+              as: 'cat',
+              in: {
+                $mergeObjects: [
+                  '$$cat',
+                  {
+                    subCategories: {
+                      $filter: {
+                        input: '$categories',
+                        as: 'sub',
+                        cond: {
+                          $and: [
+                            {
+                              $ne: ['$$sub.status', 'draft'],
+                            },
+                            {
+                              $eq: ['$$cat.categoryId', '$$sub.parentId'],
+                            },
+                          ],
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          categories: {
+            $filter: {
+              input: '$categories',
+              as: 'cat',
+              cond: {
+                $and: [
+                  {
+                    $eq: ['$$cat.status', 'active'],
+                  },
+                  {
+                    $eq: ['$$cat.parentId', null],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          sections: '$firstCategory.collections',
+        },
+      },
+      {
+        $unwind: {
+          path: '$sections',
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'sections.shopifyId',
+          foreignField: 'id',
+          pipeline: [
+            {
+              $limit: 20,
+            },
+          ],
+          as: 'collections',
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'collections.parentId',
+          foreignField: 'id',
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $ne: ['$publishedAt', null],
+                    },
+                    {
+                      $eq: ['$status', 'ACTIVE'],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $limit: 10,
+            },
+          ],
+          as: 'products',
+        },
+      },
+      {
+        $addFields: {
+          sections: {
+            $mergeObjects: [
+              '$sections',
+              {
+                products: '$products',
+              },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$store.id',
+          drops: {
+            $first: '$store.drops',
+          },
+          cartSuggested: {
+            $first: '$cartSuggested',
+          },
+          categories: {
+            $first: '$categories',
+          },
+          firstCategory: {
+            $first: '$firstCategory',
+          },
+          store: {
+            $first: '$store',
+          },
+          sections: {
+            $push: {
+              name: '$sections.name',
+              shopifyId: '$sections.shopifyId',
+              type: '$sections.type',
+              products: '$sections.products',
+            },
+          },
+        },
+      },
+    ];
+    // const manager = getMongoManager();
+    const gs = await this.storeRepository.aggregate(agg).toArray();
+    console.log(
+      '🚀 ~ file: drops-groupshop.service.ts:803 ~ DropsGroupshopService ~ findDropGroupshopSections ~ agg:',
+      agg,
+    );
+    console.log(
+      '🚀 ~ file: drops-groupshop.service.ts:803 ~ DropsGroupshopService ~ findDropGroupshopSections ~ gs:',
+      gs,
+    );
+    return gs[0];
   }
 }

@@ -139,13 +139,9 @@ export class DropsGroupshopService {
   async addFavoriteProduct(dropsId: string, productId: string) {
     // const manager = getMongoManager();
     try {
-      await this.DropsGroupshopRepository.updateOne(
-        DropsGroupshop,
-        { id: dropsId },
-        {
-          $push: { favorite: productId },
-        } as any,
-      );
+      await this.DropsGroupshopRepository.updateOne({ id: dropsId }, {
+        $push: { favorite: productId },
+      } as any);
 
       Logger.log(
         `Product added (${productId}) in favorite of Drops GS ${dropsId}`,

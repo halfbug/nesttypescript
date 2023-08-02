@@ -1503,11 +1503,11 @@ export class InventoryService {
             id: collection_id,
           },
         },
-        // {
-        //   $sort: {
-        //     _id: 1,
-        //   },
-        // },
+        {
+          $sort: {
+            _id: 1,
+          },
+        },
         {
           $lookup: {
             from: 'inventory',

@@ -1228,6 +1228,11 @@ export class StoresService {
             {
               $limit: 20,
             },
+            {
+              $sort: {
+                _id: 1,
+              },
+            },
           ],
           as: 'collections',
         },
@@ -1302,14 +1307,7 @@ export class StoresService {
     ];
     // const manager = getMongoManager();
     const gs = await this.storeRepository.aggregate(agg).toArray();
-    console.log(
-      '🚀 ~ file: drops-groupshop.service.ts:803 ~ DropsGroupshopService ~ findDropGroupshopSections ~ agg:',
-      agg,
-    );
-    console.log(
-      '🚀 ~ file: drops-groupshop.service.ts:803 ~ DropsGroupshopService ~ findDropGroupshopSections ~ gs:',
-      gs,
-    );
+
     return gs[0];
   }
 }

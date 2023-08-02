@@ -20,4 +20,7 @@ export class PageInfo {
 
   @Field(() => Boolean)
   hasPreviousPage: boolean;
+
+  @Field(() => Number, { nullable: true })
+  totalRecords: number;
 }

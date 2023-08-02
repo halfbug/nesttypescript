@@ -1,4 +1,5 @@
 import { ObjectType, Field } from '@nestjs/graphql';
+import { ProductOption } from './product.entity';
 
 @ObjectType()
 class FeatureImageType {
@@ -124,8 +125,68 @@ export class Inventory {
 
 @ObjectType()
 export class SearchResult {
-  @Field(() => [String], { nullable: 'itemsAndList' })
-  products?: string[];
+  @Field({ description: 'shopify entity id' })
+  id: string;
+
+  @Field()
+  status?: string;
+
+  @Field()
+  createdAt: Date;
+
+  @Field()
+  updatedAt: Date;
+
+  @Field()
+  title: string;
+
+  @Field()
+  description?: string;
+
+  @Field()
+  publishedAt?: string;
+
+  @Field()
+  createdAtShopify?: string;
+
+  @Field()
+  recordType?: string;
+
+  @Field()
+  currencyCode?: string;
+
+  @Field()
+  featuredImage?: string;
+
+  @Field()
+  shop?: string;
+
+  @Field({ nullable: true })
+  outofstock?: boolean;
+
+  @Field({ nullable: true })
+  price?: string;
+
+  @Field({ defaultValue: 0 })
+  purchaseCount?: number;
+
+  @Field()
+  secondaryCount?: number;
+
+  @Field(() => [String], { nullable: true })
+  tags?: string[];
+
+  @Field({ nullable: true })
+  productCategory?: string;
+
+  @Field({ nullable: true })
+  vendor?: string;
+
+  @Field({ nullable: true })
+  compareAtPrice?: string;
+
+  @Field(() => [ProductOption], { nullable: 'itemsAndList' })
+  options?: ProductOption[];
 }
 
 @ObjectType()

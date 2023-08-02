@@ -109,11 +109,7 @@ export class InventoryResolver {
     @Args('searchTerm') searchTerm: string,
     @Args('shop') shop: string,
   ) {
-    const productsData = await this.inventoryService.searchProducts(
-      searchTerm,
-      shop,
-    );
-    return [{ products: productsData }];
+    return await this.inventoryService.searchProducts(searchTerm, shop);
   }
 
   @Query(() => [Inventory], { name: 'syncCollection' })

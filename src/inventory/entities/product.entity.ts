@@ -17,8 +17,8 @@ export class ProductOption {
   @Field()
   name: string;
 
-  @Field()
-  position: number;
+  @Field({ nullable: true })
+  position?: number;
 
   @Field(() => [String], { nullable: 'itemsAndList' })
   values?: string[];

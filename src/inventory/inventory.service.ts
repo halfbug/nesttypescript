@@ -1424,6 +1424,19 @@ export class InventoryService {
     return true;
   }
 
+  async findMultiPlePorductsById(ids: string[]) {
+    return await this.inventoryRepository.find({
+      where: {
+        $and: [
+          { id: { $in: ids } },
+          {
+            recordType: 'Product',
+          },
+        ],
+      },
+    });
+  }
+
   async searchProducts(searchTerm: string, shop: string) {
     let index = new Document(options);
     index = this.retrieveIndex(shop, index);
@@ -1459,7 +1472,8 @@ export class InventoryService {
         }
       });
     }
-    return filterProducts;
+    const productsData = await this.findMultiPlePorductsById(filterProducts);
+    return productsData;
   }
 
   retrieveIndex = (shop: string, index) => {

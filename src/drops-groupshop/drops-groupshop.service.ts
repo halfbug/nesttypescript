@@ -14,6 +14,7 @@ import { InventoryService } from 'src/inventory/inventory.service';
 import { Product } from 'src/inventory/entities/product.entity';
 import DropsCategory from 'src/drops-category/entities/drops-category.model';
 import { DropsCategoryService } from 'src/drops-category/drops-category.service';
+import Store from 'src/stores/entities/store.model';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

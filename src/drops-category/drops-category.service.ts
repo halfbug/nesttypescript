@@ -294,7 +294,7 @@ export class DropsCategoryService {
         );
       }
 
-      const updateStoreInput = new UpdateStoreInput();
+      const updateStoreInput: any = new UpdateStoreInput();
       updateStoreInput.drops = {
         ...drops,
         codeUpdateStatus: CodeUpdateStatusTypeEnum.inprogress,
@@ -353,5 +353,95 @@ export class DropsCategoryService {
     ];
     const res = await this.DropsCategoryRepository.aggregate(agg).toArray();
     return res;
+  }
+  async findProductsByCategory(categoryId: string) {
+    const agg = [
+      {
+        $match: {
+          categoryId: categoryId,
+        },
+      },
+      {
+        $addFields: {
+          sections: '$collections',
+        },
+      },
+      {
+        $unwind: {
+          path: '$sections',
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'sections.shopifyId',
+          foreignField: 'id',
+          pipeline: [
+            {
+              $limit: 12,
+            },
+          ],
+          as: 'products',
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'products.parentId',
+          foreignField: 'id',
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $ne: ['$publishedAt', null],
+                    },
+                    {
+                      $eq: ['$status', 'ACTIVE'],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $limit: 10,
+            },
+          ],
+          as: 'products',
+        },
+      },
+      {
+        $group: {
+          _id: '$categoryId',
+          collections: {
+            $first: '$collections',
+          },
+          categoryId: {
+            $first: '$categoryId',
+          },
+          sortOrder: {
+            $first: '$sortOrder',
+          },
+          title: {
+            $first: '$title',
+          },
+          parentId: {
+            $first: '$parentId',
+          },
+          sections: {
+            $push: {
+              name: '$sections.name',
+              shopifyId: '$sections.shopifyId',
+              type: '$sections.type',
+              products: '$products',
+            },
+          },
+        },
+      },
+    ];
+    // const manager = getMongoManager();
+    const gs = await this.DropsCategoryRepository.aggregate(agg).toArray();
+    return gs[0];
   }
 }

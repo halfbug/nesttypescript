@@ -202,7 +202,7 @@ export class DropsGroupshopResolver {
   @Public()
   @Query(() => DropsCategory, { name: 'collectionByCategory' })
   async getCollectionByCategory(@Args('categoryId') categoryId: string) {
-    return await this.dropsGroupshopService.findProductsByCategory(categoryId);
+    return await this.dropsCategoryService.findProductsByCategory(categoryId);
   }
 
   @Public()

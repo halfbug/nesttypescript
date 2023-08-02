@@ -490,30 +490,6 @@ export class InventoryService {
       {
         $match: {
           'collections.collectionId': { $exists: true },
-          store: {
-            $first: '$store',
-          },
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          collections: {
-            $push: {
-              collectionTitle: '$collectionTitle',
-              collectionId: '$collectionId',
-              productCount: '$productCount',
-              isSynced: '$isSynced',
-            },
-          },
-          collectionsToUpdate: {
-            $first: '$store.collectionsToUpdate',
-          },
-        },
-      },
-      {
-        $match: {
-          'collections.collectionId': { $exists: true },
         },
       },
       {

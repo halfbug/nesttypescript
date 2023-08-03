@@ -50,8 +50,8 @@ export class ShopifyController {
   @Get('callback')
   async callback(@Req() req: Request, @Res() res: Response) {
     console.log('inside shoify store callback');
-    console.log('req.quer :', req.query);
-    console.log('req.body :', req.body);
+    // console.log('req.quer :', req.query);
+    // console.log('req.body :', req.body);
     const { session } = await this.shopifyService.shopify.auth.callback({
       rawRequest: req,
       rawResponse: res,
@@ -71,10 +71,10 @@ export class ShopifyController {
     if (!isStoreExist) {
       const offlineSession = this.shopifyService.offlineSession(session);
       // const offlineSessRes = await this.shopifyapi.offlineSession(shop);
-      console.log(
-        '🚀 ~ file: store.service.ts ~ line 56 ~ StoreService ~ callback ~ offlineSessRes',
-        JSON.stringify(offlineSession),
-      );
+      // console.log(
+      //   '🚀 ~ file: store.service.ts ~ line 56 ~ StoreService ~ callback ~ offlineSessRes',
+      //   JSON.stringify(offlineSession),
+      // );
     } else
       await this.storesService.updateField(
         { id: store.id },

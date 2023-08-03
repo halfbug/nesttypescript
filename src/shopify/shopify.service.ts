@@ -168,10 +168,10 @@ export class ShopifyService {
       const response = await this.shopify.webhooks.register({
         session,
       });
-      console.log(
-        '🚀 ~ file: shopify.service.ts:167 ~ ShopifyService ~ registerHook ~ response:',
-        JSON.stringify(response),
-      );
+      // console.log(
+      //   '🚀 ~ file: shopify.service.ts:167 ~ ShopifyService ~ registerHook ~ response:',
+      //   JSON.stringify(response),
+      // );
 
       if (!response[topic][0].success) {
         console.log(

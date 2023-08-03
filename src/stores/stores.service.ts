@@ -146,10 +146,10 @@ export class StoresService {
       },
     ];
     const res = await this.storeRepository.aggregate(agg).toArray();
-    console.log(
-      '🚀 ~ file: stores.service.ts ~ line 69 ~ StoresService ~ findOneByName ~ res',
-      res[0],
-    );
+    // console.log(
+    //   '🚀 ~ file: stores.service.ts ~ line 69 ~ StoresService ~ findOneByName ~ res',
+    //   res[0],
+    // );
     if (typeof res[0]?.industry === 'string') {
       return { ...res[0], industry: [res[0].industry] };
     } else {
@@ -165,7 +165,7 @@ export class StoresService {
         },
       }),
     );
-    console.log(JSON.stringify(result));
+    // console.log(JSON.stringify(result));
     if (typeof result?.industry === 'string') {
       return { ...result, industry: [result?.industry] };
     } else {

@@ -15,6 +15,7 @@ export class PaginationService {
       lastPage,
       hasNextPage: currentPage < lastPage,
       hasPreviousPage: currentPage > 1,
+      totalRecords: total,
     };
   }
 }

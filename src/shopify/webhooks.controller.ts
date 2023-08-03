@@ -244,48 +244,36 @@ export class WebhooksController {
     @Query('path') path: any,
   ) {
     try {
-      const stores = await this.storesService.findAll();
+      const dropsStoreId = this.configSevice.get('DROPSTORE');
+      const store = await this.storesService.findById(dropsStoreId);
 
-      stores.map(async (store) => {
-        const { shop, accessToken } = store;
-        const { session } = await this.storesService.withStoreSession(store);
-        const client = await this.shopifyService.client(session);
-        console.log(
-          '🚀 ~ file: webhooks.controller.ts ~ line 288 ~ WebhooksController ~ register ~ shop',
-          shop,
-        );
-        const rhook = await this.shopifyService.registerHook(
-          shop,
-          accessToken,
-          // '/webhooks/product-update',
-          // 'PRODUCTS_UPDATE',
-          '/webhooks/' + path,
-          topic,
-        );
-        console.log(
-          '🚀 ~ file: webhooks.controller.ts:295 ~ stores.map ~ rhook:',
-          JSON.stringify(rhook),
-        );
-        const id =
+      const { shop, session } = store;
+      const client = await this.shopifyService.client(session);
+      const rhook = await this.shopifyService.registerHook(
+        shop,
+        '/webhooks/' + path,
+        topic,
+        session,
+      );
+      const id =
+        rhook['result']['data']['webhookSubscriptionUpdate'][
+          'webhookSubscription'
+        ]['id'];
+      console.log(
+        'color: #007acc;',
+        '%c rhook ->',
+        JSON.stringify(
           rhook['result']['data']['webhookSubscriptionUpdate'][
             'webhookSubscription'
-          ]['id'];
-        // console.log('yes register');
-        console.log(
-          'color: #007acc;',
-          '%c rhook ->',
-          JSON.stringify(
-            rhook['result']['data']['webhookSubscriptionUpdate'][
-              'webhookSubscription'
-            ]['id'],
-            null,
-            '\t',
-          ),
-        );
-        console.log(rhook);
-        const qres = await client.query({
-          data: {
-            query: `query webhookSubscription($id: ID!){
+          ]['id'],
+          null,
+          '\t',
+        ),
+      );
+      console.log(rhook);
+      const qres = await client.query({
+        data: {
+          query: `query webhookSubscription($id: ID!){
             
               webhookSubscription(id: $id) {
                 id
@@ -302,18 +290,17 @@ export class WebhooksController {
               }
           
         }`,
-            variables: {
-              id: id,
-            },
+          variables: {
+            id: id,
           },
-        });
-        console.log('🚀 ~ hook detail', JSON.stringify(qres));
-        console.log(
-          '-hook detail',
-          'color: #007acc;',
-          JSON.stringify(qres, null, '\t'),
-        );
+        },
       });
+      console.log('🚀 ~ hook detail', JSON.stringify(qres));
+      console.log(
+        '-hook detail',
+        'color: #007acc;',
+        JSON.stringify(qres, null, '\t'),
+      );
       return 'done-check console for detail';
     } catch (err) {
       console.log(JSON.stringify(err));

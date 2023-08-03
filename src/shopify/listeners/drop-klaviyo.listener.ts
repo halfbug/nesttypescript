@@ -75,7 +75,7 @@ export class DropKlaviyoListener {
       const klaviyoId = webdata.customerDetail.klaviyoId;
 
       // Update latest milestone discount that is active on the klaviyo profile
-      const currentProfile = await this.kalavioService.getProfilesById(
+      const currentProfile: any = await this.kalavioService.getProfilesById(
         klaviyoId,
         webdata.storeId,
       );

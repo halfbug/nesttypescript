@@ -19,6 +19,9 @@ import { OrderCreatedListener } from './listeners/order-created.listener';
 import { WebhooksController } from './webhooks.controller';
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { ThemeAppExtensionController } from './theme-app-extension/theme-app-extension.controller';
+import { OrderPlacedEvent } from './events/order-placed.envent';
+import { OrderPlacedListener } from './listeners/order-placed.listener';
+import { DropKlaviyoEvent } from './events/drop-klaviyo.event';
 
 @Module({
   imports: [
@@ -46,6 +49,10 @@ import { ThemeAppExtensionController } from './theme-app-extension/theme-app-ext
     OldThemeFoundListener,
     OrderCreatedEvent,
     OrderCreatedListener,
+    OrderPlacedEvent,
+    OrderPlacedListener,
+    DropKlaviyoEvent,
+    DropKlaviyoListener,
   ],
   exports: [ShopifyService, OrderCreatedEvent],
 })

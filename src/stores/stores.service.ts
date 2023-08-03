@@ -114,14 +114,17 @@ export class StoresService {
   }
 
   async withStoreSession(store): Promise<StoreWithSession> {
-    const { accessToken, shopifySessionId: id, state, shop } = store;
-    const session = await this.shopifyapi.getSessionFromStorage(
-      shop,
-      accessToken,
-      id,
-      state,
-    );
-    return { ...store, session };
+    if (store) {
+      const { accessToken, shopifySessionId: id, state, shop } = store;
+      const session = await this.shopifyapi.getSessionFromStorage(
+        shop,
+        accessToken,
+        id,
+        state,
+      );
+      return { ...store, session };
+    }
+    return store;
   }
   async findOneWithCampaings(shop: string) {
     // const manager = getMongoManager();

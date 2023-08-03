@@ -92,7 +92,7 @@ export class AuthController {
 
     res.redirect(
       `${this.configService.get(
-        'FRONT',
+        'DASHBOARD',
       )}/auth/login?rurl=${this.authService.goToAppfront(store)}&st=${token}`,
     );
   }

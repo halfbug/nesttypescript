@@ -30,8 +30,10 @@ export class AuthService {
     else {
       return installationStep === null &&
         ['Active', 'ACTIVE', 'actve'].includes(subscription.status)
-        ? `${this.configService.get('FRONT')}/${shopName}/overview`
-        : `${this.configService.get('FRONT')}/${shopName}/${installationStep}`;
+        ? `${this.configService.get('DASHBOARD')}/${shopName}/overview`
+        : `${this.configService.get(
+            'DASHBOARD',
+          )}/${shopName}/${installationStep}`;
       // return;
     }
   }

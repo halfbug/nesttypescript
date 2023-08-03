@@ -16,6 +16,8 @@ import { AppLoggerModule } from 'src/applogger/applogger.module';
 import { DropsCategoryModule } from 'src/drops-category/drops-category.module';
 import { OrderCreatedEvent } from './events/order-created.event';
 import { OrderCreatedListener } from './listeners/order-created.listener';
+import { WebhooksController } from './webhooks.controller';
+import { HttpModule, HttpService } from '@nestjs/axios';
 
 @Module({
   imports: [
@@ -27,8 +29,9 @@ import { OrderCreatedListener } from './listeners/order-created.listener';
     forwardRef(() => AuthModule),
     forwardRef(() => DropsCategoryModule),
     forwardRef(() => AppLoggerModule),
+    HttpModule,
   ],
-  controllers: [ShopifyController],
+  controllers: [ShopifyController, WebhooksController],
   providers: [
     ShopifyService,
     TokenReceivedListener,

@@ -18,6 +18,7 @@ import { OrderCreatedEvent } from './events/order-created.event';
 import { OrderCreatedListener } from './listeners/order-created.listener';
 import { WebhooksController } from './webhooks.controller';
 import { HttpModule, HttpService } from '@nestjs/axios';
+import { ThemeAppExtensionController } from './theme-app-extension/theme-app-extension.controller';
 
 @Module({
   imports: [
@@ -31,7 +32,11 @@ import { HttpModule, HttpService } from '@nestjs/axios';
     forwardRef(() => AppLoggerModule),
     HttpModule,
   ],
-  controllers: [ShopifyController, WebhooksController],
+  controllers: [
+    ShopifyController,
+    WebhooksController,
+    ThemeAppExtensionController,
+  ],
   providers: [
     ShopifyService,
     TokenReceivedListener,

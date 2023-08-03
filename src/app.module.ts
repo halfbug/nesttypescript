@@ -9,7 +9,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { InventoryModule } from './inventory/inventory.module';
 import Inventory from './inventory/entities/inventory.modal';
 import Orders from './inventory/entities/orders.modal';
-// import { ServeStaticModule } from '@nestjs/serve-static';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EmailModule } from './email/email.module';
@@ -94,10 +94,10 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
     StoresModule,
     UtilsModule,
     InventoryModule,
-    // ServeStaticModule.forRoot({
-    //   rootPath: join(__dirname, '..', 'public'),
-    //   serveRoot: '/public/', //last slash was important
-    // }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+      serveRoot: '/public/', //last slash was important
+    }),
     EmailModule,
     GsCommonModule,
     VideoModule,

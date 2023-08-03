@@ -115,7 +115,7 @@ export class InventoryResolver {
   @Query(() => [Inventory], { name: 'syncCollection' })
   async syncCollection(@Args('storeId') storeId: string) {
     const store = await this.storeService.findById(storeId);
-    // const res = await this.inventoryService.runSyncCollectionCron(store);
+    const res = await this.inventoryService.runSyncCollectionCron(store);
     // console.log(
     //   '🚀 ~ file: inventory.resolver.ts ~ line 57 ~ InventoryResolver ~ res',
     //   res,

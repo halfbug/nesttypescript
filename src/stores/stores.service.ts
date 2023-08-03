@@ -106,9 +106,9 @@ export class StoresService {
       state,
     } = await this.storeRepository.findOne({ where: { shop } });
     return await this.shopifyapi.getSessionFromStorage(
-      id,
       shop,
       accessToken,
+      id,
       state,
     );
   }
@@ -116,9 +116,9 @@ export class StoresService {
   async withStoreSession(store): Promise<StoreWithSession> {
     const { accessToken, shopifySessionId: id, state, shop } = store;
     const session = await this.shopifyapi.getSessionFromStorage(
-      id,
       shop,
       accessToken,
+      id,
       state,
     );
     return { ...store, session };

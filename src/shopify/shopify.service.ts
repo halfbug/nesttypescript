@@ -100,8 +100,8 @@ export class ShopifyService {
     // } = await this.storesService.findOne(shop);
     return new Session({
       id,
-      shop,
       accessToken,
+      shop,
       isOnline: false,
       state,
     });

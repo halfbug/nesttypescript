@@ -23,7 +23,12 @@ export class SyncCollectionCron {
       log('Cron running');
       try {
         const stores = await this.storeService.findWithCollectionUpdate();
+        console.log(
+          '🚀 ~ file: inventory.cron.ts:26 ~ SyncCollectionCron ~ syncCollections ~ stores:',
+          stores,
+        );
         for (const store of stores) {
+          // const { shop, collectionsToUpdate } = store;
           if (!store.collectionsToUpdate?.length) {
             Logger.log(
               `No collections to update in store ${store.shop}`,

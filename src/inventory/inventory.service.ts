@@ -1086,21 +1086,14 @@ export class InventoryService {
   // CRON FUNCTIONS START
   async runSyncCollectionCron(store: any) {
     try {
-      const {
-        shop,
-        accessToken,
-        collectionsToUpdate,
-        shopifySessionId: id,
-        state,
-      } = store;
+      const { shop, accessToken, collectionsToUpdate, id, session } =
+        await this.storeService.withStoreSession(store);
       if (store?.drops && store?.drops?.status == 'Active') {
-        const session = await this.shopifyService.getSessionFromStorage(
-          shop,
-          accessToken,
-          id,
-          state,
-        );
         const client = await this.shopifyService.client(session);
+        console.log(
+          '🚀 ~ file: inventory.service.ts:1093 ~ InventoryService ~ runSyncCollectionCron ~ client:',
+          session,
+        );
 
         if (!collectionsToUpdate.length) {
           log('No collections to update');

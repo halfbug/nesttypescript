@@ -156,6 +156,49 @@ export class ThemeAppExtensionController {
       // res.status(HttpStatus.OK).send();
     }
   }
+  @Post('member')
+  async getMemberDetails(@Req() req, @Res() res) {
+    try {
+      const { orderId, wurl } = req.body;
+      console.log('🚀  ~ wurl', wurl);
+      console.log({ orderId });
+
+      // const {
+      //   members,
+      //   members: [owner],
+      //   url,
+      //   obSettings: { ownerUrl },
+      //   discountCode: { percentage },
+      // } = await this.groupshopSrv.findByOrderId(orderId);
+      // const newURL =
+      //   owner.orderId === `gid://shopify/Order/${orderId}` ? ownerUrl : url;
+      // console.log(
+      //   '🚀 ~ file: theme-app-extension.controller.ts ~ line 101 ~ ThemeAppExtensionController ~ getMemberDetails ~ newURL',
+      //   newURL,
+      // );
+      // console.log(await /this.groupshopSrv.findByOrderId(orderId));
+      // const activeMember = members.find((member) =>
+      //   member.orderId.includes(orderId),
+      // );
+      // console.log(
+      //   '🚀 ~ file: theme-app-extension.controller.ts ~ line 69 ~ ThemeAppExtensionController ~ getMemberDetails ~ activeMember',
+      //   activeMember,
+      // );
+      res.send(
+        JSON.stringify({
+          activeMember: null,
+          url: null,
+          // url,
+          percentage: 0,
+          members: 0,
+        }),
+      );
+    } catch (err) {
+      res.send(JSON.stringify({ activeMember: null, url: null }));
+    } finally {
+      // res.status(HttpStatus.OK).send();
+    }
+  }
 
   @Post('dropsSVIDs')
   async getdropsSVIDs(@Req() req, @Res() res) {

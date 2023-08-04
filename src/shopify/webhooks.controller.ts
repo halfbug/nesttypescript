@@ -641,8 +641,8 @@ export class WebhooksController {
       }
 
       // create event for Search Indexing
-      this.searchIndexingRefreshEvent.shopName = shop;
-      this.searchIndexingRefreshEvent.emit();
+      // this.searchIndexingRefreshEvent.shopName = shop;
+      // this.searchIndexingRefreshEvent.emit();
 
       // res.send('product updated..');
     } catch (err) {
@@ -881,8 +881,8 @@ export class WebhooksController {
         // });
 
         // create event for Search Indexing
-        this.searchIndexingRefreshEvent.shopName = shop;
-        this.searchIndexingRefreshEvent.emit();
+        // this.searchIndexingRefreshEvent.shopName = shop;
+        // this.searchIndexingRefreshEvent.emit();
       }
 
       //  3 update groupshop page query so that it can display deleted bought products as discontinued products.
@@ -955,8 +955,8 @@ export class WebhooksController {
               true,
             );
             // create event for Search Indexing
-            this.searchIndexingRefreshEvent.shopName = shop;
-            this.searchIndexingRefreshEvent.emit();
+            // this.searchIndexingRefreshEvent.shopName = shop;
+            // this.searchIndexingRefreshEvent.emit();
           })
           .catch((err) => {
             Logger.error(
@@ -1062,8 +1062,8 @@ export class WebhooksController {
             });
 
             // create event for Search Indexing
-            this.searchIndexingRefreshEvent.shopName = shop;
-            this.searchIndexingRefreshEvent.emit();
+            // this.searchIndexingRefreshEvent.shopName = shop;
+            // this.searchIndexingRefreshEvent.emit();
           });
       }
     } catch (err) {
@@ -1130,8 +1130,8 @@ export class WebhooksController {
         );
 
         // create event for Search Indexing
-        this.searchIndexingRefreshEvent.shopName = shopName;
-        this.searchIndexingRefreshEvent.emit();
+        // this.searchIndexingRefreshEvent.shopName = shopName;
+        // this.searchIndexingRefreshEvent.emit();
       }
     } catch (err) {
       console.log(JSON.stringify(err));

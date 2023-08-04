@@ -221,6 +221,7 @@ export class OrderPlacedListener {
       const cashBackEvent = new CashBackEvent();
       cashBackEvent.cashbackAmount = shopifyAmount;
       cashBackEvent.cashbackCharge = cashBackUsageChargeAmount;
+      cashBackEvent.groupshop = this.groupshop;
       // cashBackEvent.revenue = revenuePrice;
       cashBackEvent.revenue = 0;
       cashBackEvent.orderId = member.orderId;

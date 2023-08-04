@@ -212,12 +212,9 @@ export class GroupshopCashbackListener {
     //console.log('resData1111 : ' + JSON.stringify(res));
     const dealUrl = res.groupshop.url;
     const shortLink = res.groupshop.shortUrl;
-    const discountOne =
-      res.store.activeCampaign.salesTarget.rewards[0].discount.replace('%', '');
-    const discountTwo =
-      res.store.activeCampaign.salesTarget.rewards[1].discount.replace('%', '');
-    const discountThree =
-      res.store.activeCampaign.salesTarget.rewards[2].discount.replace('%', '');
+    const discountOne = parseInt(res.store.drops.rewards.baseline);
+    const discountTwo = parseInt(res.store.drops.rewards.average);
+    const discountThree = parseInt(res.store.drops.rewards.maximum);
     const groupMembers = res.groupshop.members;
     const groupMemberength = res.groupshop.members.length;
     let recInnerDiscount = 0;

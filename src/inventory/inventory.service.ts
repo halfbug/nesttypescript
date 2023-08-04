@@ -171,7 +171,7 @@ export class InventoryService {
     console.log(id, 'removevariants');
     // this.inventoryManager = getMongoManager();
 
-    return await this.inventoryManager.deleteMany(Inventory, {
+    return await this.inventoryRepository.deleteMany({
       $and: [
         { parentId: id },
         {
@@ -1088,6 +1088,10 @@ export class InventoryService {
     try {
       const { shop, accessToken, collectionsToUpdate, id, session } =
         await this.storeService.withStoreSession(store);
+      console.log(
+        '🚀 ~ file: inventory.service.ts:1090 ~ InventoryService ~ runSyncCollectionCron ~ collectionsToUpdate:',
+        collectionsToUpdate,
+      );
       if (store?.drops && store?.drops?.status == 'Active') {
         const client = await this.shopifyService.client(session);
         console.log(
@@ -1106,6 +1110,10 @@ export class InventoryService {
             }
           })
           .join(' OR ');
+        console.log(
+          '🚀 ~ file: inventory.service.ts:1109 ~ InventoryService ~ runSyncCollectionCron ~ queryString:',
+          queryString,
+        );
 
         await client
           .query({

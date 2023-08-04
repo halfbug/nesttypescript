@@ -573,10 +573,6 @@ export class WebhooksController {
           rproduct?.admin_graphql_api_id,
         );
 
-        // create event for Search Indexing
-        this.searchIndexingRefreshEvent.shopName = shop;
-        this.searchIndexingRefreshEvent.emit();
-
         this.inventryService.findOne(shop, 'ProductVideo');
         const variants = [];
         rproduct.variants?.map(async (variant) => {
@@ -643,6 +639,11 @@ export class WebhooksController {
           this.campaignStock.emit();
         }
       }
+
+      // create event for Search Indexing
+      this.searchIndexingRefreshEvent.shopName = shop;
+      this.searchIndexingRefreshEvent.emit();
+
       // res.send('product updated..');
     } catch (err) {
       console.log(JSON.stringify(err));

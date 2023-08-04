@@ -1,6 +1,7 @@
 import { Column, Entity } from 'typeorm';
 import { DefaultColumnsService } from 'src/utils/default-columns/default-columns.service';
 import { CategoryStatus, CollectionType } from './drops-category.entity';
+import { ForYouSections } from 'src/drops-groupshop/entities/drops-groupshop.entity';
 
 @Entity()
 export class DropsCollection {
@@ -36,4 +37,7 @@ export default class DropsCategory extends DefaultColumnsService {
 
   @Column({ nullable: true })
   status: CategoryStatus;
+
+  @Column({ default: [] })
+  forYouSections: ForYouSections[];
 }

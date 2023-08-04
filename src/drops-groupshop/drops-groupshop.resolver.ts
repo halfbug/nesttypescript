@@ -200,6 +200,32 @@ export class DropsGroupshopResolver {
   }
 
   @Public()
+  @Query(() => DropsGroupshop, { name: 'DropGroupshopForYouSection' })
+  async findDropsGroupshopForYouSections(@Args('id') id: string) {
+    if (id) {
+      const gs = await this.dropsGroupshopService.findOne(id);
+      if (gs && 'forYou' in gs && gs.forYou.length) {
+        const forYouSection =
+          await this.dropsCategoryService.findDropGroupshopForYouSections(
+            // code,
+            gs.forYou,
+          );
+        if (forYouSection) {
+          return forYouSection;
+        } else {
+          return [];
+          throw new NotFoundException(`Not Found For You section`);
+        }
+      } else {
+        return [];
+        throw new NotFoundException(`Not Found For You section`);
+      }
+    } else {
+      throw new NotFoundException(`Not Found For You section`);
+    }
+  }
+
+  @Public()
   @Query(() => DropsCategory, { name: 'collectionByCategory' })
   async getCollectionByCategory(@Args('categoryId') categoryId: string) {
     return await this.dropsCategoryService.findProductsByCategory(categoryId);
@@ -254,12 +280,17 @@ export class DropsGroupshopResolver {
 
   @Public()
   @Mutation(() => DropsGroupshop)
-  async createOnBoardingDiscountCode(@Args('gid') gid: string) {
+  async createOnBoardingDiscountCode(
+    @Args('gid') gid: string,
+    @Args('selectedSubCategories', { type: () => [String], nullable: true })
+    selectedSubCategories?: string[],
+  ) {
     try {
       const dgroupshop = await this.dropsGroupshopService.findOne(gid);
       const dGroupshop = {
         ...dgroupshop,
         obSettings: { ...dgroupshop.obSettings, step: 1 },
+        forYou: selectedSubCategories ? selectedSubCategories : [],
       };
 
       const klaviyoId = dGroupshop?.customerDetail?.klaviyoId;

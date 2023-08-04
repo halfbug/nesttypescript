@@ -38,6 +38,14 @@ export class Sections {
   products?: Product[];
 }
 
+@ObjectType('ForYouSections')
+export class ForYouSections {
+  @Field({ nullable: true })
+  name?: string;
+  @Field(() => [Sections], { nullable: true })
+  sections?: Sections[];
+}
+
 @ObjectType('CategoryCollection')
 export class CategoryCollection {
   @Field({ nullable: true })
@@ -177,4 +185,7 @@ export class DropsGroupshop {
 
   @Field(() => [Product], { nullable: true })
   favorite?: Product[];
+
+  @Field(() => [ForYouSections], { defaultValue: [] })
+  forYouSections?: ForYouSections[];
 }

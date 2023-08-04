@@ -70,4 +70,7 @@ export default class DropsGroupshop extends DefaultColumnsService {
 
   @Column()
   expiredAt?: Date | null;
+
+  @Column({ default: [] })
+  forYou?: string[];
 }

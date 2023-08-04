@@ -171,4 +171,7 @@ export class CreateGroupshopInput {
 
   @Field(() => OBSettingsInput, { nullable: true })
   obSettings?: OBSettingsInput;
+
+  @Field(() => [String], { defaultValue: [] })
+  forYou?: string[];
 }

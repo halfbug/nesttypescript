@@ -444,4 +444,182 @@ export class DropsCategoryService {
     const gs = await this.DropsCategoryRepository.aggregate(agg).toArray();
     return gs[0];
   }
+
+  async findDropGroupshopForYouSections(categories: string[]) {
+    const agg = [
+      {
+        $match: {
+          categoryId: {
+            $in: categories,
+          },
+        },
+      },
+      {
+        $unwind: {
+          path: '$collections',
+          // includeArrayIndex: "sections",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'collections.shopifyId',
+          foreignField: 'id',
+          pipeline: [
+            {
+              $limit: 20,
+            },
+          ],
+          as: 'collectionDetails',
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'collectionDetails.parentId',
+          foreignField: 'id',
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    {
+                      $ne: ['$publishedAt', null],
+                    },
+                    {
+                      $eq: ['$status', 'ACTIVE'],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $limit: 10,
+            },
+          ],
+          as: 'products',
+        },
+      },
+      {
+        $addFields: {
+          collections: {
+            $mergeObjects: [
+              '$collections',
+              {
+                products: '$products',
+              },
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$id',
+          rest: {
+            $first: '$$ROOT',
+          },
+          forYouSections: {
+            $push: {
+              name: '$title',
+              sections: '$collections',
+            },
+          },
+        },
+      },
+      {
+        $unwind: {
+          path: '$forYouSections',
+          // includeArrayIndex: "forYouSections",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            id: '$_id',
+            name: '$forYouSections.name',
+          },
+          rest: {
+            $first: '$rest',
+          },
+          sections: {
+            $push: '$forYouSections.sections',
+          },
+        },
+      },
+      {
+        $addFields: {
+          sections: {
+            $cond: {
+              if: {
+                $anyElementTrue: {
+                  $map: {
+                    input: '$sections',
+                    as: 'cal',
+                    in: {
+                      $eq: ['$$cal.type', 'allproduct'],
+                    },
+                  },
+                },
+              },
+              then: {
+                $filter: {
+                  input: '$sections',
+                  as: 'cal',
+                  cond: {
+                    $or: [
+                      {
+                        $eq: ['$$cal.type', 'allproduct'],
+                      },
+                      {
+                        $eq: ['$$cal.type', 'vault'],
+                      },
+                      {
+                        $eq: ['$$cal.type', 'spotlight'],
+                      },
+                    ],
+                  },
+                },
+              },
+              else: [],
+            },
+          },
+        },
+      },
+      {
+        $group: {
+          _id: '$_id.id',
+          rest: {
+            $first: '$rest',
+          },
+          forYouSections: {
+            $push: {
+              name: '$_id.name',
+              sections: '$sections',
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          mergeDocument: {
+            $mergeObjects: ['$$ROOT', '$rest'],
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: '$mergeDocument',
+        },
+      },
+      {
+        $project: {
+          forYouSections: 1,
+        },
+      },
+    ];
+    const gs = await this.DropsCategoryRepository.aggregate(agg).toArray();
+    return gs[0];
+  }
 }

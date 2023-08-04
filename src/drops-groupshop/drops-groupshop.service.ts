@@ -35,10 +35,6 @@ export class DropsGroupshopService {
   ) {}
 
   async create(createDropsGroupshopInput: CreateDropsGroupshopInput) {
-    console.log(
-      '🚀 ~ file: drops-groupshop.service ~ line 19 ~ groupshop.service ~ create ~ createDropsGroupshopInput',
-      createDropsGroupshopInput,
-    );
     const id = uuid();
 
     const {
@@ -344,10 +340,6 @@ export class DropsGroupshopService {
 
       // const manager = getMongoManager();
       const gs = await this.DropsGroupshopRepository.aggregate(agg).toArray();
-      console.log(
-        '🚀 ~ file: drops-groupshop.service.ts:221 ~ DropsGroupshopService ~ getdrops ~ agg:',
-        JSON.stringify(agg),
-      );
       const result = gs;
       agg.pop();
       agg.pop();
@@ -362,15 +354,10 @@ export class DropsGroupshopService {
         pageInfo: this.paginateService.paginate(result, total, take, skip),
       };
     } catch (err) {
-      console.log(
-        '🚀 ~ file: drops-groupshop.service.ts:227 ~ DropsGroupshopService ~ getdrops ~ err:',
-        err,
-      );
       Logger.error(err, DropsCategoryService.name);
     }
   }
   async createDropDiscountCode(gs) {
-    // console.log('createDropDiscountCode ', gs);
     const {
       shop,
       accessToken,
@@ -546,6 +533,7 @@ export class DropsGroupshopService {
           id: 1,
           updatedAt: 1,
           favorite: 1,
+          forYou: 1,
         },
       },
     ];
@@ -571,7 +559,12 @@ export class DropsGroupshopService {
       },
       updateGroupshopInput,
     );
-    return await this.findDropsGS(code);
+    const gs = await this.findDropGroupshopByCode(code);
+    const forYou =
+      await this.dropsCategoryService.findDropGroupshopForYouSections(
+        gs.forYou,
+      );
+    return { ...gs, forYouSections: forYou.forYouSections };
   }
 
   async findOne(id: string) {

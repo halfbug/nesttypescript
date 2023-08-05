@@ -155,7 +155,7 @@ export class SearchResult {
   @Field()
   currencyCode?: string;
 
-  @Field()
+  @Field({ nullable: true })
   featuredImage?: string;
 
   @Field()

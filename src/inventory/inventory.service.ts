@@ -216,7 +216,7 @@ export class InventoryService {
   async removeMultiPleEntities(ids: string[], recordType) {
     // this.inventoryManager = getMongoManager();
 
-    return await this.inventoryManager.deleteMany(Inventory, {
+    return await this.inventoryRepository.deleteMany({
       $and: [
         { id: { $in: ids } },
         {

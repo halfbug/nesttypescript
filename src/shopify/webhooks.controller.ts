@@ -1916,4 +1916,15 @@ export class WebhooksController {
       res.status(HttpStatus.OK).send();
     }
   }
+
+  @Post('registerwh')
+  async registerAllWH(@Req() req, @Res() res) {
+    console.log('first');
+    const inventorySavedEvent = new InventorySavedEvent();
+    inventorySavedEvent.shop = 'native-root-stage.myshopify.com';
+    inventorySavedEvent.accessToken = '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';
+    inventorySavedEvent.type = 'saved';
+    this.eventEmitter.emit('inventory.saved', inventorySavedEvent);
+    res.send('webhooks reset');
+  }
 }

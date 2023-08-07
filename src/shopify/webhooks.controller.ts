@@ -807,6 +807,14 @@ export class WebhooksController {
   async orderCreate(@Req() req, @Res() res) {
     try {
       const { shop } = req.query;
+      Logger.log(
+        `orderPlaceListener ${JSON.stringify(
+          req?.body?.source_name,
+        )} and ${shop} and ${req?.body?.id} and ${req?.body?.order?.id}`,
+        'THANKSPAGE',
+        true,
+      );
+
       const storeData = await this.storesService.findOneByName(shop);
       if (storeData?.drops && storeData?.drops?.status == 'Active') {
         // console.log(

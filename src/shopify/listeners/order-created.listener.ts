@@ -33,6 +33,7 @@ export class OrderCreatedListener {
     try {
       const { shop, webhook } = event;
       const whOrder = webhook;
+      Logger.log(`addOrder ${JSON.stringify(whOrder)}`, 'THANKSPAGE', true);
 
       // console.log(
       //   'WebhooksController ~ orderCreate ~ webhookData',

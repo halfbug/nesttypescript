@@ -1535,11 +1535,11 @@ export class InventoryService {
       const prodcount: (Inventory & { total?: number })[] =
         await this.inventoryRepository.aggregate(agg).toArray();
       const total = prodcount[0]?.total ?? 0;
-      Logger.log(
-        `Products paginated for collection (${collection_id}) `,
-        'PAGINATE_PRODUCTS',
-        true,
-      );
+      // Logger.log(
+      //   `Products paginated for collection (${collection_id}) `,
+      //   'PAGINATE_PRODUCTS',
+      //   true,
+      // );
       return {
         result,
         pageInfo: this.paginateService.paginate(result, total, take, skip),

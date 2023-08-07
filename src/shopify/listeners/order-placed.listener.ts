@@ -334,6 +334,11 @@ export class OrderPlacedListener {
       this.order = event.order;
       this.store = event.store;
       this.session = session;
+      Logger.log(
+        `orderPlaceListener ${JSON.stringify(this.order)}`,
+        'THANKSPAGE',
+        true,
+      );
 
       const gsMember = new MemberInput();
       gsMember.orderId = orderId;

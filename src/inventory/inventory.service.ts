@@ -1536,7 +1536,7 @@ export class InventoryService {
         await this.inventoryRepository.aggregate(agg).toArray();
       const total = prodcount[0]?.total ?? 0;
       // Logger.log(
-      //   `Products paginated for collection (${collection_id}) `,
+      //   `Products paginated for collection off (${collection_id}) `,
       //   'PAGINATE_PRODUCTS',
       //   true,
       // );

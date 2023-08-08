@@ -45,13 +45,14 @@ export class AuthController {
   async login(@Req() req: Request, @Res() res: Response) {
     const { shop } = req.query;
     // console.log('🚀 ~ auth login ~ shop:', shop);
-    await this.shopifyService.shopify.auth.begin({
-      shop: await this.shopifyService.sanitizeShop(shop),
-      callbackPath: '/auth/callback',
-      isOnline: true,
-      rawRequest: req,
-      rawResponse: res,
-    });
+    if (shop)
+      await this.shopifyService.shopify.auth.begin({
+        shop: await this.shopifyService.sanitizeShop(shop),
+        callbackPath: '/auth/callback',
+        isOnline: true,
+        rawRequest: req,
+        rawResponse: res,
+      });
   }
 
   @Get('callback')

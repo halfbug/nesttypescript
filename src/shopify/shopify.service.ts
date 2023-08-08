@@ -935,7 +935,7 @@ export class ShopifyService {
         (id, index) =>
           `productVariant${
             index + 1
-          }: productVariant(id: "${id}") { inventoryItem { inventoryLevels(first: 1) { edges { node { location { id } } } } } }\n`,
+          }: productVariant(id: "${id}") { inventoryItem { inventoryLevels(first: 10) { edges { node { location { id } available } } } } }\n`,
       );
 
       const ldetail = await client.query({
@@ -948,12 +948,13 @@ export class ShopifyService {
       // console.log({ ldetail });
       Logger.debug(ldetail, ShopifyService.name);
       const arr = Object.values(ldetail.body['data']);
-      const locations = arr.map(
-        (item) =>
-          item['inventoryItem']['inventoryLevels']['edges'][0]['node'][
-            'location'
-          ]['id'],
-      );
+      const locations = arr.map((item) => {
+        const edgesArr = item['inventoryItem']['inventoryLevels']['edges'];
+        const availbaleQuantity = edgesArr.find(
+          (ele) => ele['node']['available'] > 0,
+        );
+        return availbaleQuantity['node']['location']['id'];
+      });
       return locations;
     } catch (err) {
       console.log(err.response.errors);

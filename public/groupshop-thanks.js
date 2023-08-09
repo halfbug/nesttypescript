@@ -952,7 +952,7 @@ async function init() {
               (parseFloat(`${store.dropsLastMilestone}%`) / 100 -
                 mem.availedDiscount / 100);
 
-            amountCal = `${Math.floor(cashback)
+            amountCal = `${Math.ceil(cashback)
               .toFixed(2)
               .toString()
               .replace('.00', '')}`;

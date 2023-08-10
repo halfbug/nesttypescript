@@ -87,7 +87,6 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: true,
-      include: [ShopifyModule],
       autoSchemaFile: true,
     }),
     ScheduleModule.forRoot(),

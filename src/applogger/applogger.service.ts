@@ -176,11 +176,13 @@ export class AppLoggerService {
     return res[0];
   }
 
-  async findLatestByCotext(context: string) {
+  async findLatestByCotext(context: string[]) {
     const agg = [
       {
         $match: {
-          context,
+          context: {
+            $in: context,
+          },
         },
       },
       {

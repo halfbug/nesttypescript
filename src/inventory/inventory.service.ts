@@ -1557,4 +1557,30 @@ export class InventoryService {
     // );
     // return res;
   }
+
+  async updateProductVendor(products: any[]) {
+    const bulkOps = products.map((product) => ({
+      updateOne: {
+        filter: { id: product.id },
+        update: { $set: { vendor: product.vendor } },
+      },
+    }));
+
+    try {
+      await this.inventoryRepository.bulkWrite(bulkOps);
+      console.log('Product vendors updated successfully.');
+      Logger.log(
+        'Product vendor updated',
+        'PRODUCT_VENDOR_TO_UPDATE_BULK',
+        true,
+      );
+    } catch (error) {
+      console.error('Error updating product vendors:', error);
+      Logger.error(
+        `Error updating product vendors: ${error}`,
+        'PRODUCT_VENDOR_TO_UPDATE_BULK',
+        true,
+      );
+    }
+  }
 }

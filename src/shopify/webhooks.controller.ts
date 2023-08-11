@@ -41,6 +41,7 @@ import { RecordType } from 'src/utils/constant';
 import { AppLoggerService } from 'src/applogger/applogger.service';
 import { SearchIndexingRefreshEvent } from 'src/inventory/events/searchIndexing-refresh.event';
 import { OrderCreatedEvent } from './events/order-created.event';
+import { firstValueFrom, map } from 'rxjs';
 @Public()
 @Controller('webhooks')
 export class WebhooksController {
@@ -1004,16 +1005,16 @@ export class WebhooksController {
           shop,
         );
 
-        const log = await this.appLoggerService.findLatestByCotext(
+        const log = await this.appLoggerService.findLatestByCotext([
           'COLLECTIONTOUPDATBULK',
-        );
+          'PRODUCT_VENDOR_TO_UPDATE_BULK',
+        ]);
 
         const bulkOperationId = log.message?.split('-')[1]?.trim();
 
-        await client
-          .query({
-            data: {
-              query: `query {
+        const res = await client.query({
+          data: {
+            query: `query {
             node(id: "${bulkOperationId}") {
               ... on BulkOperation {
                 url
@@ -1021,64 +1022,79 @@ export class WebhooksController {
               }
             }
           }`,
-            },
-          })
-          .then((res) => {
-            const resp = JSON.stringify(res.body['data']['node']);
-            Logger.log(`${shop} ${resp}`, 'SYNC_COLLECTION_BULKFINISH', true);
-            const url = res.body['data']['node'].url;
-            this.httpService.get(url).subscribe(async (res) => {
-              const checkCollection = res.data?.length
-                ? readJsonLines(res.data)
-                : [];
-              Logger.log(
-                `check collection ${JSON.stringify(checkCollection)}`,
-                'SYNC_COLLECTION_BULKFINISH',
-                true,
-              );
+          },
+        });
+        const resp = JSON.stringify(res.body['data']['node']);
+        Logger.log(`${shop} ${resp}`, `${log['context']}`, true);
+        const url = res.body['data']['node'].url;
 
-              if (
-                checkCollection.length
-                // checkCollection[0].productsCount > 0
-              ) {
-                // this.inventryService.getProducts(checkCollection, id, shop);
-                const deletedCollectionIds =
-                  await this.inventryService.updateCollection(
-                    checkCollection,
-                    id,
-                    shop,
-                  );
-                // update store status to complete
-                // remove store collectiontoupdate entries
-                await this.storesService.updateCustom(
-                  shop,
-                  deletedCollectionIds,
-                );
-                Logger.log(
-                  `${shop} deletedIds ${deletedCollectionIds}`,
-                  'SYNC_COLLECTION_UPDATESTORE',
-                  true,
-                );
-                Logger.log(
-                  `${shop} updated/sync`,
-                  'SYNC_COLLECTION_UPDATESTORE',
-                  true,
-                );
-              } else {
-                console.log('No products found');
-              }
-            });
+        const responseFromURL = await firstValueFrom(
+          this.httpService.get(url).pipe(map((res: any) => res.data)),
+        );
 
-            // create event for Search Indexing
-            // this.searchIndexingRefreshEvent.shopName = shop;
-            // this.searchIndexingRefreshEvent.emit();
-          });
+        switch (log.context) {
+          case 'COLLECTIONTOUPDATBULK': {
+            this.syncingCollection(responseFromURL, shop, id);
+            break;
+          }
+
+          case 'PRODUCT_VENDOR_TO_UPDATE_BULK': {
+            this.updatingProductVendor(responseFromURL);
+            break;
+          }
+        }
+
+        // create event for Search Indexing
+        // this.searchIndexingRefreshEvent.shopName = shop;
+        // this.searchIndexingRefreshEvent.emit();
       }
     } catch (err) {
       Logger.error(err, 'SYNC_COLLECTION_BULKFINISH');
     } finally {
       res.status(HttpStatus.OK).send();
     }
+  }
+
+  async syncingCollection(res, shop, id) {
+    const checkCollection = res?.length ? readJsonLines(res) : [];
+    Logger.log(
+      `check collection ${JSON.stringify(checkCollection)}`,
+      'SYNC_COLLECTION_BULKFINISH',
+      true,
+    );
+
+    if (
+      checkCollection.length
+      // checkCollection[0].productsCount > 0
+    ) {
+      // this.inventryService.getProducts(checkCollection, id, shop);
+      const deletedCollectionIds = await this.inventryService.updateCollection(
+        checkCollection,
+        id,
+        shop,
+      );
+      // update store status to complete
+      // remove store collectiontoupdate entries
+      await this.storesService.updateCustom(shop, deletedCollectionIds);
+      Logger.log(
+        `${shop} deletedIds ${deletedCollectionIds}`,
+        'SYNC_COLLECTION_UPDATESTORE',
+        true,
+      );
+      Logger.log(`${shop} updated/sync`, 'SYNC_COLLECTION_UPDATESTORE', true);
+    } else {
+      console.log('No products found');
+    }
+  }
+
+  async updatingProductVendor(res) {
+    const products = res?.length ? readJsonLines(res) : [];
+    Logger.log(
+      `Product vendors update initiated`,
+      'PRODUCT_VENDOR_TO_UPDATE_BULK',
+      true,
+    );
+    this.inventryService.updateProductVendor(products);
   }
 
   @Post('collection-update?')

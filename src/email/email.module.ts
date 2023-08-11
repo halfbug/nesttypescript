@@ -9,6 +9,7 @@ import { KalavioResolver } from './kalavio.resolver';
 import { StoresModule } from 'src/stores/stores.module';
 import { DropsGroupshopModule } from 'src/drops-groupshop/drops-groupshop.module';
 import { GsCommonModule } from 'src/gs-common/gs-common.module';
+import { ShopifyService } from 'src/shopify/shopify.service';
 
 @Module({
   imports: [
@@ -18,7 +19,12 @@ import { GsCommonModule } from 'src/gs-common/gs-common.module';
     forwardRef(() => GsCommonModule),
     forwardRef(() => StoresModule),
   ],
-  providers: [GroupshopCashbackListener, KalavioService, KalavioResolver],
+  providers: [
+    GroupshopCashbackListener,
+    KalavioService,
+    KalavioResolver,
+    ShopifyService,
+  ],
   exports: [KalavioService],
   controllers: [CatController],
 })

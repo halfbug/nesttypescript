@@ -69,7 +69,7 @@ export class AppLoggerResolver {
   async getDiscountLoggerData(
     @Args({ name: 'context', type: () => String }) context: string,
   ) {
-    const res = await this.apploggerService.findLatestByCotext(context);
+    const res = await this.apploggerService.findLatestByCotext([context]);
     const resp = res ?? {
       id: 'null',
       message: 'null',

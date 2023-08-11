@@ -8,6 +8,7 @@ import {
   Res,
   Param,
   Query,
+  Post,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
@@ -33,6 +34,7 @@ import { DropCreatedListener } from 'src/drops-groupshop/listeners/drop-created.
 import { EncryptDecryptService } from 'src/utils/encrypt-decrypt/encrypt-decrypt.service';
 import { LifecycleService } from 'src/gs-common/lifecycle.service';
 import { EventType } from 'src/gs-common/entities/lifecycle.modal';
+import { ShopifyService } from 'src/shopify/shopify.service';
 @Public()
 @Controller('connect')
 export class CatController {
@@ -42,7 +44,7 @@ export class CatController {
     private eventEmitter: EventEmitter2,
     private httpService: HttpService,
     private inventoryService: InventoryService,
-    // private shopifyService: ShopifyService,
+    private shopifyService: ShopifyService,
     // private storeService: StoreService,
     private readonly storesService: StoresService,
     private readonly lifecyclesrv: LifecycleService,
@@ -647,5 +649,58 @@ export class CatController {
     //     console.log(err);
     //   }
     // });
+  }
+
+  @Post('update-product-vendors')
+  async productVendors() {
+    const storeId = this.configService.get('DROPSTORE');
+    const { session, shop } = await this.storesService.findById(storeId);
+    const client = await this.shopifyService.client(session);
+    try {
+      const res = await client.query({
+        data: {
+          query: `mutation {
+          bulkOperationRunQuery(
+           query: """
+            {
+              products {
+                edges {
+                  node {
+                    id
+                    title
+                    vendor
+                  }
+                }
+              }
+            }
+            """
+          ) {
+            bulkOperation {
+              id
+              status
+            }
+            userErrors {
+              field
+              message
+            }
+          }
+        }`,
+        },
+      });
+      const bulkId =
+        res.body['data']['bulkOperationRunQuery']['bulkOperation']['id'];
+
+      Logger.log(
+        `Product vendors update bulk register with id - ${bulkId}`,
+        'PRODUCT_VENDOR_TO_UPDATE_BULK',
+        true,
+      );
+    } catch (err) {
+      Logger.error(
+        `Product vendors update bulk register failed - ${err}`,
+        'PRODUCT_VENDOR_TO_UPDATE_BULK',
+        true,
+      );
+    }
   }
 }

@@ -1483,11 +1483,7 @@ export class InventoryService {
             id: collection_id,
           },
         },
-        {
-          $sort: {
-            _id: 1,
-          },
-        },
+
         {
           $lookup: {
             from: 'inventory',
@@ -1520,6 +1516,11 @@ export class InventoryService {
         {
           $replaceRoot: {
             newRoot: '$products',
+          },
+        },
+        {
+          $sort: {
+            _id: 1,
           },
         },
         {

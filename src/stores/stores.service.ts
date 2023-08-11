@@ -1231,11 +1231,6 @@ export class StoresService {
             {
               $limit: 20,
             },
-            {
-              $sort: {
-                _id: 1,
-              },
-            },
           ],
           as: 'collections',
         },
@@ -1258,6 +1253,11 @@ export class StoresService {
                     },
                   ],
                 },
+              },
+            },
+            {
+              $sort: {
+                _id: 1,
               },
             },
             {

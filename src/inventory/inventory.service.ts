@@ -1409,6 +1409,9 @@ export class InventoryService {
           {
             recordType: 'Product',
           },
+          {
+            status: 'ACTIVE',
+          },
         ],
       },
     });

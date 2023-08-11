@@ -66,6 +66,12 @@ export class StoresResolver {
     return this.storesService.findOneWithActiveCampaingProducts(shop);
   }
 
+  @Public()
+  @Query(() => Store, { name: 'getDropBanner' })
+  dropBanner() {
+    return this.storesService.getDropBanner();
+  }
+
   @Query(() => Store, { name: 'store' })
   findOneById(@Args('id') id: string) {
     return this.storesService.findOneById(id);

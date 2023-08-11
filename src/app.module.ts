@@ -36,6 +36,7 @@ import DropsCategory from './drops-category/entities/drops-category.model';
 import AdminActivityLogs from './admin-activity-logs/entities/admin-activity-log.model';
 import { ShopifyModule } from './shopify/shopify.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { UploadImageModule } from './ImageUpload/uploadimage.module';
 @Module({
   imports: [
     ShopifyModule,
@@ -108,6 +109,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
     AdminPermissionsModule,
     DropsCategoryModule,
     AdminActivityLogsModule,
+    UploadImageModule,
   ],
 })
 export class AppModule {}

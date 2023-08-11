@@ -47,6 +47,9 @@ export class MarketingSetting {
   snapchatPixels?: string;
 }
 export class Settings {
+  @Column({ nullable: true })
+  dropBanner?: string;
+
   @Column(() => GeneralSetting)
   general?: GeneralSetting;
 

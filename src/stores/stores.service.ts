@@ -1313,4 +1313,18 @@ export class StoresService {
 
     return gs[0];
   }
+
+  async getDropBanner() {
+    const agg = [
+      {
+        $match: {
+          id: this.configService.get('DROPSTORE'),
+        },
+      },
+    ];
+    // const manager = getMongoManager();
+    const gs = await this.storeRepository.aggregate(agg).toArray();
+
+    return gs[0];
+  }
 }

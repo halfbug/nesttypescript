@@ -66,6 +66,9 @@ export class MarketingSettingInput {
 }
 @InputType()
 export class SettingsInput {
+  @Field({ nullable: true })
+  dropBanner?: string;
+
   @Field((type) => GeneralSettingInput, { nullable: true })
   general?: GeneralSettingInput;
 

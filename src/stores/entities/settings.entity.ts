@@ -74,6 +74,9 @@ export class MarketingSetting {
 
 @ObjectType()
 export class Settings {
+  @Field({ nullable: true })
+  dropBanner?: string;
+
   @Field(() => GeneralSetting, { nullable: true })
   general?: GeneralSetting;
 

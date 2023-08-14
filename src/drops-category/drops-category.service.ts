@@ -527,6 +527,7 @@ export class DropsCategoryService {
           forYouSections: {
             $push: {
               name: '$title',
+              id: '$categoryId',
               sections: '$collections',
             },
           },
@@ -544,6 +545,7 @@ export class DropsCategoryService {
           _id: {
             id: '$_id',
             name: '$forYouSections.name',
+            categoryId: '$forYouSections.id',
           },
           rest: {
             $first: '$rest',
@@ -601,6 +603,7 @@ export class DropsCategoryService {
           forYouSections: {
             $push: {
               name: '$_id.name',
+              id: '$_id.categoryId',
               sections: '$sections',
             },
           },

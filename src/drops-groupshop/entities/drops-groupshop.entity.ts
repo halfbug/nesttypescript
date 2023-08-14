@@ -42,6 +42,8 @@ export class Sections {
 export class ForYouSections {
   @Field({ nullable: true })
   name?: string;
+  @Field({ nullable: true })
+  id?: string;
   @Field(() => [Sections], { nullable: true })
   sections?: Sections[];
 }

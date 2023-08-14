@@ -564,7 +564,7 @@ export class DropsGroupshopService {
       await this.dropsCategoryService.findDropGroupshopForYouSections(
         gs.forYou,
       );
-    return { ...gs, forYouSections: forYou.forYouSections };
+    return { ...gs, forYouSections: forYou ? forYou.forYouSections : [] };
   }
 
   async findOne(id: string) {

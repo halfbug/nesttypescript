@@ -378,7 +378,7 @@ export class DropsCategoryService {
           foreignField: 'id',
           pipeline: [
             {
-              $limit: 12,
+              $limit: 20,
             },
           ],
           as: 'products',

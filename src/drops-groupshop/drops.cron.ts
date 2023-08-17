@@ -21,7 +21,7 @@ export class DropKlaviyoCron {
     private readonly crypt: EncryptDecryptService,
   ) {}
 
-  // @Cron(CronExpression.EVERY_10_MINUTES) // CronExpression.EVERY_10_MINUTES)
+  @Cron(CronExpression.EVERY_10_MINUTES) // CronExpression.EVERY_10_MINUTES)
   async klaviyoGroupshopStatus() {
     const groupshops =
       await this.dropsGroupshopService.findExpiredDropGroupshhop();

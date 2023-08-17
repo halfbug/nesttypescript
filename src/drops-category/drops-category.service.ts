@@ -376,11 +376,11 @@ export class DropsCategoryService {
           from: 'inventory',
           localField: 'sections.shopifyId',
           foreignField: 'id',
-          pipeline: [
-            {
-              $limit: 20,
-            },
-          ],
+          // pipeline: [
+          //   {
+          //     $limit: 20,
+          //   },
+          // ],
           as: 'products',
         },
       },
@@ -471,11 +471,11 @@ export class DropsCategoryService {
           from: 'inventory',
           localField: 'collections.shopifyId',
           foreignField: 'id',
-          pipeline: [
-            {
-              $limit: 20,
-            },
-          ],
+          // pipeline: [
+          //   {
+          //     $limit: 20,
+          //   },
+          // ],
           as: 'collectionDetails',
         },
       },

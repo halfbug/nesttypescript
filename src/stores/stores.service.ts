@@ -1227,11 +1227,11 @@ export class StoresService {
           from: 'inventory',
           localField: 'sections.shopifyId',
           foreignField: 'id',
-          pipeline: [
-            {
-              $limit: 20,
-            },
-          ],
+          // pipeline: [
+          //   {
+          //     $limit: 20,
+          //   },
+          // ],
           as: 'collections',
         },
       },

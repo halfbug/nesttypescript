@@ -37,16 +37,16 @@ export class InventoryResolver {
   findStoreTotalProducts(@Args('shop') shop: string) {
     return this.inventoryService.findTotalProducts(shop);
   }
-
+  @Public()
   @Query(() => [Collection], { name: 'collections' })
   findStoreCollections(@Args('shop') shop: string, @Info() info: any) {
     const selectedFileds = info.fieldNodes[0].selectionSet.selections.map(
       (item) => item.name.value,
     );
-    // console.log(
-    //   '🚀 ~ file: inventory.resolver.ts ~ line 38 ~ InventoryResolver ~ findStoreCollections ~ selectedFileds',
-    //   selectedFileds,
-    // );
+    console.log(
+      '🚀 ~ file: inventory.resolver.ts ~ line 38 ~ InventoryResolver ~ findStoreCollections ~ selectedFileds',
+      selectedFileds,
+    );
     const withproducts = selectedFileds.includes('products');
     const collections = this.inventoryService.findStoreCollections(
       shop,
@@ -161,6 +161,7 @@ export class InventoryResolver {
       productArgs,
     );
   }
+
   // @Mutation(() => Inventory)
   // updateInventory(
   //   @Args('updateInventoryInput') updateInventoryInput: UpdateInventoryInput,

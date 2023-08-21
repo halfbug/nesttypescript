@@ -46,10 +46,6 @@ export class StoresResolver {
       (item) => item.name.value,
     );
     // const shop = sshop ?? qshop;
-    console.log(
-      '🚀 ~ file: stores.resolver.ts ~ line 43 ~ StoresResolver ~ shop',
-      shop,
-    );
     const withCampaigns = selectedFileds.includes('campaigns');
     const res = await this.storesService.findOneWithCampaings(shop);
     // console.log(
@@ -80,6 +76,17 @@ export class StoresResolver {
   @Mutation(() => Store)
   updateStore(@Args('updateStoreInput') updateStoreInput: UpdateStoreInput) {
     return this.storesService.update(updateStoreInput.id, updateStoreInput);
+  }
+  @Public()
+  @Mutation(() => Store, { name: 'updateStoreSimple' })
+  updateStoreSimple(
+    @Args('updateStoreInput') updateStoreInput: UpdateStoreInput,
+  ) {
+    console.log('im in updateStoreSimple');
+    return this.storesService.updateStore(
+      updateStoreInput.id,
+      updateStoreInput,
+    );
   }
 
   // @Mutation(() => Store)

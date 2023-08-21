@@ -11,6 +11,7 @@ import {
 } from 'src/drops-groupshop/dto/create-drops-groupshop.input';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { DropCreatedEvent } from '../events/drop-created.event';
+import { AESEncryptDecryptService } from 'src/utils/encrypt-decrypt/aes-encrypt-decrypt.service';
 
 @Injectable()
 export class DropCreatedListener {
@@ -21,6 +22,7 @@ export class DropCreatedListener {
     private kalavioService: KalavioService,
     private storesService: StoresService,
     private inventryService: InventoryService,
+    private aesService: AESEncryptDecryptService,
   ) {}
 
   @OnEvent('drop.created')
@@ -82,8 +84,10 @@ export class DropCreatedListener {
           dropCustomer.fullName = webdata.full_name;
           dropCustomer.firstName = webdata.first_name;
           dropCustomer.lastName = webdata.last_name;
-          dropCustomer.email = webdata.email;
-          dropCustomer.phone = webdata.phone_number;
+          dropCustomer.email = this.aesService.encryptData(webdata.email);
+          dropCustomer.phone = this.aesService.encryptData(
+            webdata.phone_number,
+          );
 
           dgroupshop.customerDetail = dropCustomer;
           dgroupshop.status = 'pending';
@@ -174,8 +178,8 @@ export class DropCreatedListener {
         dropCustomer.fullName = webdata.full_name;
         dropCustomer.firstName = webdata.first_name;
         dropCustomer.lastName = webdata.last_name;
-        dropCustomer.email = webdata.email;
-        dropCustomer.phone = webdata.phone_number;
+        dropCustomer.email = this.aesService.encryptData(webdata.email);
+        dropCustomer.phone = this.aesService.encryptData(webdata.phone_number);
 
         dgroupshop.customerDetail = dropCustomer;
         dgroupshop.status = 'pending';

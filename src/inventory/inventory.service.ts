@@ -1587,4 +1587,33 @@ export class InventoryService {
       );
     }
   }
+  async getProductVariants(shop: string, products: string[]) {
+    const agg = [
+      {
+        $match: {
+          $and: [
+            { shop },
+            {
+              parentId: {
+                $in: products,
+              },
+            },
+            {
+              recordType: 'ProductVariant',
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: '$parentId',
+          variants: {
+            $addToSet: '$id',
+          },
+        },
+      },
+    ];
+    const res = await this.inventoryRepository.aggregate(agg).toArray();
+    return res;
+  }
 }

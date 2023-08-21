@@ -36,6 +36,10 @@ import DropsCategory from './drops-category/entities/drops-category.model';
 import AdminActivityLogs from './admin-activity-logs/entities/admin-activity-log.model';
 import { ShopifyModule } from './shopify/shopify.module';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { AppsettingsModule } from './appsettings/appsettings.module';
+import { Appsetting } from './appsettings/entities/appsetting.model';
+import { DropsProductsModule } from './drops-products/drops-products.module';
+import DropsProducts from './drops-products/entities/drops-products.model';
 import { UploadImageModule } from './ImageUpload/uploadimage.module';
 @Module({
   imports: [
@@ -81,6 +85,8 @@ import { UploadImageModule } from './ImageUpload/uploadimage.module';
             AppLogger,
             DropsGroupshop,
             DropsCategory,
+            Appsetting,
+            DropsProducts,
           ],
         };
       },
@@ -109,6 +115,8 @@ import { UploadImageModule } from './ImageUpload/uploadimage.module';
     AdminPermissionsModule,
     DropsCategoryModule,
     AdminActivityLogsModule,
+    AppsettingsModule,
+    DropsProductsModule,
     UploadImageModule,
   ],
 })

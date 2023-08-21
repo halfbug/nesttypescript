@@ -35,6 +35,7 @@ import { EncryptDecryptService } from 'src/utils/encrypt-decrypt/encrypt-decrypt
 import { LifecycleService } from 'src/gs-common/lifecycle.service';
 import { EventType } from 'src/gs-common/entities/lifecycle.modal';
 import { ShopifyService } from 'src/shopify/shopify.service';
+import { AESEncryptDecryptService } from 'src/utils/encrypt-decrypt/aes-encrypt-decrypt.service';
 @Public()
 @Controller('connect')
 export class CatController {
@@ -54,6 +55,7 @@ export class CatController {
     private dropCreatedEvent: DropCreatedEvent,
     private dropCreatedListener: DropCreatedListener,
     private readonly crypt: EncryptDecryptService,
+    private aesService: AESEncryptDecryptService,
   ) {}
   @Get('/')
   async test() {
@@ -451,13 +453,14 @@ export class CatController {
           percentage: null,
           priceRuleId: null,
         },
+        // encryption aes
         customerDetail: {
           klaviyoId: profile?.id,
           fullName: profile?.attributes?.properties?.['Full Name'] ?? null,
           firstName: profile?.attributes?.first_name,
           lastName: profile?.attributes?.last_name,
-          email: profile?.attributes?.email,
-          phone: profile?.attributes?.phone_number,
+          email: this.aesService.encryptData(profile?.attributes?.email),
+          phone: this.aesService.encryptData(profile?.attributes?.phone_number),
         },
         status: 'pending',
         groupshopSource: 'CRON',

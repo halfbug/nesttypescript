@@ -9,6 +9,7 @@ import { EventType } from 'src/gs-common/entities/lifecycle.modal';
 import { EncryptDecryptService } from 'src/utils/encrypt-decrypt/encrypt-decrypt.service';
 import { v4 as uuid } from 'uuid';
 import { StoresService } from 'src/stores/stores.service';
+import { AESEncryptDecryptService } from 'src/utils/encrypt-decrypt/aes-encrypt-decrypt.service';
 @Injectable()
 export class DropKlaviyoCron {
   constructor(
@@ -19,6 +20,8 @@ export class DropKlaviyoCron {
     private configService: ConfigService,
     private dropCreatedListener: DropCreatedListener,
     private readonly crypt: EncryptDecryptService,
+    private aesService: AESEncryptDecryptService,
+
   ) {}
 
   @Cron(CronExpression.EVERY_10_MINUTES) // CronExpression.EVERY_10_MINUTES)
@@ -202,7 +205,7 @@ export class DropKlaviyoCron {
           'FRONT',
         )}${cryptURL}/status&activated`;
         const fulllink = `${this.configService.get('FRONT')}${ownerUrl}`;
-
+        // encryption aes
         return {
           id: uuid(),
           storeId: stores.id,
@@ -224,8 +227,8 @@ export class DropKlaviyoCron {
             fullName: profile?.attributes?.properties?.['Full Name'] ?? null,
             firstName: profile?.attributes?.first_name,
             lastName: profile?.attributes?.last_name,
-            email: profile?.attributes?.email,
-            phone: profile?.attributes?.phone_number,
+            email: this.aesService.encryptData(profile?.attributes?.email),
+            phone: this.aesService.encryptData(profile?.attributes?.phone_number),
           },
           status: 'pending',
           groupshopSource: 'CRON',

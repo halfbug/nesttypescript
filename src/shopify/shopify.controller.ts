@@ -91,18 +91,21 @@ export class ShopifyController {
   @Get('refresh')
   async dbfresh() {
     try {
+      console.log('first');
       const shop = 'native-roots-dev.myshopify.com';
       const store = await this.storesService.findOne(shop);
       // this.shopifyService.accessToken = store.accessToken;
       // this.shopifyService.shop = shop;
-      if (store?.resources?.length > 0)
-        store?.resources?.map((res) => {
-          if (res.type === 'scriptTag') {
-            // this.shopifyService.scriptTagDelete(res.id);
-          }
-        });
+      // if (store?.resources?.length > 0)
+      //   store?.resources?.map((res) => {
+      //     if (res.type === 'scriptTag') {
+      //       // this.shopifyService.scriptTagDelete(res.id);
+      //     }
+      //   });
+      await this.storesService.removeShop(shop);
       await this.inventorySrv.removeShop(shop);
       await this.ordersSrv.removeShop(shop);
+      console.log('first');
       return 'done';
     } catch (error) {
       return error.message;

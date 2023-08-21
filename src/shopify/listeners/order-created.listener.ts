@@ -13,6 +13,7 @@ import { StoresService } from 'src/stores/stores.service';
 import { InventoryService } from 'src/inventory/inventory.service';
 import { DropsGroupshopService } from 'src/drops-groupshop/drops-groupshop.service';
 import { ShopifyService } from '../shopify.service';
+import { AESEncryptDecryptService } from 'src/utils/encrypt-decrypt/aes-encrypt-decrypt.service';
 
 @Injectable()
 export class OrderCreatedListener {
@@ -24,6 +25,7 @@ export class OrderCreatedListener {
     private storesService: StoresService,
     private inventryService: InventoryService,
     private dropsService: DropsGroupshopService,
+    private aesService: AESEncryptDecryptService,
   ) {}
 
   private shop: string;
@@ -71,11 +73,13 @@ export class OrderCreatedListener {
         newOrder.customer.firstName = whOrder.customer?.first_name;
         newOrder.customer.lastName = whOrder.customer?.last_name;
       }
-      newOrder.customer.email = whOrder.customer?.email;
+      newOrder.customer.email = this.aesService.encryptData(
+        whOrder.customer?.email,
+      );
       newOrder.customer.ip = whOrder?.browser_ip;
       newOrder.customer.phone =
         whOrder.shipping_address?.country === 'United States'
-          ? phoneNumber
+          ? this.aesService.encryptData(phoneNumber)
           : null;
       newOrder.customer.sms_marketing =
         whOrder?.customer?.sms_marketing_consent?.state || null;
@@ -139,8 +143,19 @@ export class OrderCreatedListener {
       );
 
       const newOrderPlaced = new OrderPlacedEvent();
-      newOrderPlaced.klaviyo = newOrder.customer;
-      newOrderPlaced.order = newOrderSaved;
+      newOrderPlaced.klaviyo = {
+        ...newOrder.customer,
+        email: whOrder.customer.email,
+        phone: phoneNumber,
+      };
+      newOrderPlaced.order = {
+        ...newOrderSaved,
+        customer: {
+          ...newOrderSaved.customer,
+          email: whOrder.customer.email,
+          phone: phoneNumber,
+        },
+      };
       newOrderPlaced.store = await this.storesService.findOneByName(shop);
       newOrderPlaced.lineItems = lineItems;
       newOrderPlaced.gsId = whOrder.note_attributes.length

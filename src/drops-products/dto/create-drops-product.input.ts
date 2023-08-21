@@ -1,4 +1,5 @@
 import { Field, InputType } from '@nestjs/graphql';
+import { Variants } from '../entities/drops-products.model';
 
 @InputType()
 export class CreateDropsProductInput {
@@ -10,6 +11,9 @@ export class CreateDropsProductInput {
 
   @Field({ defaultValue: false })
   isSynced: boolean;
+
+  @Field({ defaultValue: true })
+  isSelected: boolean;
 
   @Field({ nullable: true })
   m_product_id: string;

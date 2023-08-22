@@ -16,26 +16,18 @@ export class AuthService {
   ) {}
 
   goToAppfront(store: Store) {
-    const { shop, installationStep, subscription } = store;
+    const { shop, installationStep, status } = store;
     const shopName = shop.split('.')[0];
     // {"app_subscription":{"admin_graphql_api_id":"gid://shopify/AppSubscription/26070876326",
     // "name":"Explore (free for 30 days) + Cashback charge","status":"DECLINED",
     // "admin_graphql_api_shop_id":"gid://shopify/Shop/53108211878","created_at":"2022-11-29T07:10:38-05:00","updated_at":"2022-11-29T07:10:49-05:00","capped_amount":"2000.0","currency":"USD"}}
-    if (
-      subscription &&
-      ['PENDING', 'Pending'].includes(subscription.status) &&
-      subscription.confirmationUrl
-    )
-      return subscription.confirmationUrl;
-    else {
-      return installationStep === null &&
-        ['Active', 'ACTIVE', 'actve'].includes(subscription.status)
-        ? `${this.configService.get('DASHBOARD')}/${shopName}/overview`
-        : `${this.configService.get(
-            'DASHBOARD',
-          )}/${shopName}/${installationStep}`;
-      // return;
-    }
+    return installationStep === null &&
+      ['Active', 'ACTIVE', 'actve'].includes(status)
+      ? `${this.configService.get('DASHBOARD')}/${shopName}/dropmanager`
+      : `${this.configService.get(
+          'DASHBOARD',
+        )}/${shopName}/${installationStep}`;
+    // return;
   }
 
   signJwt(payload: AuthEntity): string {

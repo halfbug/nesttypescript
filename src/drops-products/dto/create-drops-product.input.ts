@@ -9,6 +9,9 @@ export class CreateDropsProductInput {
   @Field({ nullable: true })
   storeId: string;
 
+  @Field({ nullable: true })
+  shop: string;
+
   @Field({ defaultValue: false })
   isSynced: boolean;
 

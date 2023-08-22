@@ -32,17 +32,10 @@ export class DropsProductsService {
         created_at: new Date(),
       };
     });
-    console.log(
-      '🚀 ~ file: drops-products.service.ts:32 ~ DropsProductsService ~ create ~ documents:',
-      documents,
-    );
-    // const documents = products.map((productId) => ({
-    //   storeId,
-    //   m_product_id: productId,
-    //   variants: [],
-    //   isSynced: false,
-    //   created_at: new Date(),
-    // }));
+    // console.log(
+    //   '🚀 ~ file: drops-products.service.ts:32 ~ DropsProductsService ~ create ~ documents:',
+    //   documents,
+    // );
 
     try {
       const res = await this.dropsProductsrepository.insertMany(documents);
@@ -71,7 +64,42 @@ export class DropsProductsService {
       },
     });
   }
-
+  async findDropsPrdObject(storeId: string) {
+    const agg = [
+      {
+        $match: {
+          storeId,
+        },
+      },
+      {
+        $lookup: {
+          from: 'inventory',
+          localField: 'm_product_id',
+          foreignField: 'id',
+          as: 'product',
+        },
+      },
+      {
+        $unwind: {
+          path: '$product',
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: ['$product', '$$ROOT'],
+          },
+        },
+      },
+      {
+        $project: {
+          product: 0,
+        },
+      },
+    ];
+    const res = await this.dropsProductsrepository.aggregate(agg).toArray();
+    return res;
+  }
   findAll() {
     return `This action returns all dropsProducts`;
   }
@@ -79,9 +107,113 @@ export class DropsProductsService {
   findOne(id: string) {
     return `This action returns a #${id} dropsProduct`;
   }
+  async getVariants(
+    shop: string,
+    storeId: string,
+    ids: string[],
+  ): Promise<
+    {
+      parentId: any;
+      variants: any;
+    }[]
+  > {
+    const res = await this.inventoryService.getProductVariants(shop, ids);
+    console.log(
+      '🚀 ~ file: drops-products.service.ts:112 ~ DropsProductsService ~ getVariants ~ res:',
+      res,
+      ids,
+    );
+    const documents = res.map((product: any) => {
+      return {
+        parentId: product._id,
+        variants: product.variants.map((variant) => ({
+          m_variant_id: variant,
+          d_variant_id: '',
+        })),
+      };
+    });
+    console.log(
+      '🚀 ~ file: drops-products.service.ts:126 ~ DropsProductsService ~ documents ~ documents:',
+      documents,
+    );
+    return documents;
+  }
 
-  update(id: string, updateDropsProductInput: UpdateDropsProductInput) {
-    return `This action updates a #${id} dropsProduct`;
+  async updateDropsProduct(storeId: string, shop: string, products: string[]) {
+    try {
+      // Update existing documents
+      await this.dropsProductsrepository.update(
+        { storeId },
+        { isSelected: false },
+      );
+      const variants = await this.getVariants(shop, storeId, products);
+      console.log(
+        '🚀 ~ file: drops-products.service.ts:146 ~ DropsProductsService ~ updateDropsProduct ~ variants:',
+        variants,
+      );
+
+      // Bulk operations for upsert and update
+      const bulkOps = products.map((product) => ({
+        updateOne: {
+          filter: { m_product_id: product },
+          update: {
+            $set: { isSelected: true },
+            $setOnInsert: {
+              storeId,
+              shop,
+              m_product_id: product,
+              variants: variants.filter((item) => item.parentId === product)[0]
+                .variants,
+              // isSelected: true,
+              isSynced: false,
+              created_at: new Date(),
+            },
+          },
+          upsert: true,
+        },
+      }));
+      console.log(
+        '🚀 ~ file: drops-products.service.ts:164 ~ DropsProductsService ~ bulkOps ~ bulkOps:',
+        bulkOps,
+      );
+
+      // Execute bulk update operations
+      const updateRes = await this.dropsProductsrepository.bulkWrite(bulkOps);
+      console.log(
+        '🚀 ~ file: drops-products.service.ts:167 ~ DropsProductsService ~ updateDropsProduct ~ updateRes:',
+        updateRes,
+      );
+
+      // // Bulk operations for upsert
+      // const upsertOps = products.map((product) => ({
+      //   updateOne: {
+      //     filter: { m_product_id: product },
+      //     update: {
+      //       $setOnInsert: {
+      //         storeId,
+      //         shop,
+      //         m_product_id: product,
+      //         variants: [this.getVariants(shop, storeId, product)],
+      //         isSelected: true,
+      //         isSynced: false,
+      //         created_at: new Date(),
+      //       },
+      //     },
+      //     upsert: true,
+      //   },
+      // }));
+
+      // // Execute bulk upsert operations
+      // const upsertRes = await this.dropsProductsrepository.bulkWrite(upsertOps);
+
+      return updateRes;
+    } catch (error) {
+      console.log(
+        '🚀 ~ file: drops-products.service.ts:148 ~ DropsProductsService ~ updateDropsProduct ~ error:',
+        error,
+      );
+      // Handle error appropriately
+    }
   }
 
   remove(id: string) {

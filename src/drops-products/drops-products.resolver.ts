@@ -8,6 +8,7 @@ import {
 import { Public } from 'src/auth/public.decorator';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { UseGuards } from '@nestjs/common';
+import { Product } from 'src/inventory/entities/product.entity';
 
 @Resolver(() => DropsProduct)
 export class DropsProductsResolver {
@@ -20,7 +21,7 @@ export class DropsProductsResolver {
     @Args('products', { type: () => [String] }) products: string[],
   ) {
     const res = await this.dropsProductsService.create(storeId, shop, products);
-    console.log(JSON.stringify(res), '==res', JSON.stringify(res.insertedIds));
+    // console.log(JSON.stringify(res), '==res', JSON.stringify(res.insertedIds));
     return { acknowledged: res.acknowledged, insertedCount: res.insertedCount };
   }
 
@@ -30,7 +31,19 @@ export class DropsProductsResolver {
     @Args('storeId', { type: () => String }) storeId: string,
   ) {
     const res = await this.dropsProductsService.findByStoreId(storeId);
-    console.log('first resolver', res);
+    // console.log('first resolver', res);
+    return res;
+  }
+  @Public()
+  @Query(() => [DropsProduct && Product])
+  async getDropsPrdObject(
+    @Args('storeId', { type: () => String }) storeId: string,
+  ) {
+    const res = await this.dropsProductsService.findDropsPrdObject(storeId);
+    // console.log(
+    //   '🚀 ~ file: drops-products.resolver.ts:42 ~ DropsProductsResolver ~ res:',
+    //   res,
+    // );
     return res;
   }
 
@@ -43,16 +56,23 @@ export class DropsProductsResolver {
   findOne(@Args('id') id: string) {
     return this.dropsProductsService.findOne(id);
   }
-
+  @Public()
   @Mutation(() => DropsProduct)
-  update(
-    @Args('updateDropsProductInput')
-    updateDropsProductInput: UpdateDropsProductInput,
+  async updateDropsProducts(
+    @Args('storeId', { type: () => String }) storeId: string,
+    @Args('shop', { type: () => String }) shop: string,
+    @Args('products', { type: () => [String] }) products: string[],
   ) {
-    return this.dropsProductsService.update(
-      updateDropsProductInput._id,
-      updateDropsProductInput,
+    const updateRes = await this.dropsProductsService.updateDropsProduct(
+      storeId,
+      shop,
+      products,
     );
+    console.log(
+      '🚀 ~ file: drops-products.resolver.ts:71 ~ DropsProductsResolver ~ res:',
+      updateRes,
+    );
+    return { updateRes, _id: '' };
   }
 
   @Mutation(() => DropsProduct)

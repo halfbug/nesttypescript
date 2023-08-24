@@ -22,6 +22,7 @@ import { ThemeAppExtensionController } from './theme-app-extension/theme-app-ext
 import { OrderPlacedEvent } from './events/order-placed.envent';
 import { OrderPlacedListener } from './listeners/order-placed.listener';
 import { DropKlaviyoEvent } from './events/drop-klaviyo.event';
+import { DropsProductsModule } from 'src/drops-products/drops-products.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { DropKlaviyoEvent } from './events/drop-klaviyo.event';
     forwardRef(() => AuthModule),
     forwardRef(() => DropsCategoryModule),
     forwardRef(() => AppLoggerModule),
+    forwardRef(() => DropsProductsModule),
     HttpModule,
   ],
   controllers: [

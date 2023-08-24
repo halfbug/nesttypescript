@@ -219,4 +219,12 @@ export class DropsProductsService {
   remove(id: string) {
     return `This action removes a #${id} dropsProduct`;
   }
+
+  async update(updateDropsProductInput: UpdateDropsProductInput) {
+    console.log('updateDropsProductInput', updateDropsProductInput);
+    this.dropsProductsrepository.update(
+      { m_product_id: updateDropsProductInput.m_product_id },
+      updateDropsProductInput,
+    );
+  }
 }

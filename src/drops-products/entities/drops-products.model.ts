@@ -7,7 +7,7 @@ export default class DropsProducts {
   _id: string;
 
   @Column({ nullable: true })
-  storeId: string;
+  storeId?: string;
 
   @Column({ nullable: true })
   shop: string;
@@ -22,7 +22,7 @@ export default class DropsProducts {
   m_product_id: string;
 
   @Column({ nullable: true })
-  d_product_id: string[];
+  d_product_id?: string;
 
   @Column({ nullable: true })
   variants: Variants[];

@@ -7,7 +7,7 @@ export class CreateDropsProductInput {
   _id: string;
 
   @Field({ nullable: true })
-  storeId: string;
+  storeId?: string;
 
   @Field({ nullable: true })
   shop: string;
@@ -22,7 +22,7 @@ export class CreateDropsProductInput {
   m_product_id: string;
 
   @Field({ nullable: true })
-  d_product_id: string;
+  d_product_id?: string;
 
   @Field()
   created_at: string;

@@ -7,5 +7,5 @@ export class UpdateDropsProductInput extends PartialType(
   CreateDropsProductInput,
 ) {
   @Field()
-  _id: string;
+  m_product_id: string;
 }

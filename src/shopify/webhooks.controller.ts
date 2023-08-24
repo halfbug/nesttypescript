@@ -42,6 +42,8 @@ import { AppLoggerService } from 'src/applogger/applogger.service';
 import { SearchIndexingRefreshEvent } from 'src/inventory/events/searchIndexing-refresh.event';
 import { OrderCreatedEvent } from './events/order-created.event';
 import { firstValueFrom, map } from 'rxjs';
+import { DropsProductsService } from 'src/drops-products/drops-products.service';
+import { UpdateDropsProductInput } from 'src/drops-products/dto/update-drops-product.input';
 @Public()
 @Controller('webhooks')
 export class WebhooksController {
@@ -64,6 +66,7 @@ export class WebhooksController {
     private lifecyclesrv: LifecycleService,
     private appLoggerService: AppLoggerService,
     private dropsCategoryService: DropsCategoryService,
+    private dropsProductsService: DropsProductsService,
   ) {}
   async refreshSingleProduct(shop, session, id, shopName) {
     try {
@@ -635,9 +638,17 @@ export class WebhooksController {
         //   '🚀 ~ file: webhooks.controller.ts ~ line 590 ~ WebhooksController ~ productUpdate ~ nprod',
         //   nprod,
         // );
-        if (nprod.outofstock) {
+        if (nprod.outofstock || nprod.status !== 'ACTIVE') {
+          console.log('im in outofstoc or draft');
           this.campaignStock.shop = shop;
           this.campaignStock.emit();
+          // if product is outofstoc or status changed to other than published
+          // than update drops_product collection and update this product's isSynced to false
+          await this.dropsProductsService.update({
+            isSynced: false,
+            m_product_id: nprod.id,
+            shop,
+          } as UpdateDropsProductInput);
         }
       }
 

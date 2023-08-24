@@ -8,7 +8,7 @@ export class DropsProduct {
   _id: string;
 
   @Field(() => String)
-  storeId: string;
+  storeId?: string;
 
   @Field(() => Boolean)
   isSynced: boolean;
@@ -20,7 +20,7 @@ export class DropsProduct {
   m_product_id: string;
 
   @Field(() => String)
-  d_product_id: string;
+  d_product_id?: string;
 
   @Field(() => String)
   created_at: string;

@@ -1,6 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { Any } from 'typeorm';
-import { Variants } from './drops-products.model';
+import { Field, ID, InputType, ObjectType } from '@nestjs/graphql';
 
 @ObjectType()
 export class DropsProduct {
@@ -35,4 +33,16 @@ export class DropsProductResponse {
 
   // @Field(() => Any)
   // insertedIds: any;
+}
+
+@InputType()
+export class CollectionObject {
+  @Field()
+  title: string;
+
+  @Field()
+  description: string;
+
+  @Field(() => [String])
+  products?: string[];
 }

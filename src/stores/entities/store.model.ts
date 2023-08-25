@@ -157,6 +157,9 @@ export class Drops {
 
   @Column(() => CartRewards)
   cartRewards?: CartRewards[];
+
+  @Column(() => String)
+  collectionId?: string;
 }
 
 export class CollectionsToUpdate {

@@ -231,6 +231,9 @@ export class DropsInput {
 
   @Field(() => [CartRewardsInput], { nullable: 'itemsAndList' })
   cartRewards?: CartRewardsInput[];
+
+  @Field(() => String, { nullable: true })
+  collectionId?: string;
 }
 @InputType('CollectionsToUpdateInput')
 export class CollectionsToUpdateInput {

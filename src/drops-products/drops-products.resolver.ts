@@ -1,14 +1,11 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { DropsProductsService } from './drops-products.service';
-import { UpdateDropsProductInput } from './dto/update-drops-product.input';
 import {
   DropsProduct,
   DropsProductResponse,
+  CollectionObject,
 } from './entities/drops-product.entity';
 import { Public } from 'src/auth/public.decorator';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { UseGuards } from '@nestjs/common';
-import { Product } from 'src/inventory/entities/product.entity';
 
 @Resolver(() => DropsProduct)
 export class DropsProductsResolver {
@@ -21,7 +18,7 @@ export class DropsProductsResolver {
     @Args('products', { type: () => [String] }) products: string[],
   ) {
     const res = await this.dropsProductsService.create(storeId, shop, products);
-    // console.log(JSON.stringify(res), '==res', JSON.stringify(res.insertedIds));
+    console.log(JSON.stringify(res), '==res', JSON.stringify(res.insertedIds));
     return { acknowledged: res.acknowledged, insertedCount: res.insertedCount };
   }
 
@@ -31,19 +28,7 @@ export class DropsProductsResolver {
     @Args('storeId', { type: () => String }) storeId: string,
   ) {
     const res = await this.dropsProductsService.findByStoreId(storeId);
-    // console.log('first resolver', res);
-    return res;
-  }
-  @Public()
-  @Query(() => [DropsProduct && Product])
-  async getDropsPrdObject(
-    @Args('storeId', { type: () => String }) storeId: string,
-  ) {
-    const res = await this.dropsProductsService.findDropsPrdObject(storeId);
-    // console.log(
-    //   '🚀 ~ file: drops-products.resolver.ts:42 ~ DropsProductsResolver ~ res:',
-    //   res,
-    // );
+    console.log('first resolver', res);
     return res;
   }
 
@@ -56,6 +41,23 @@ export class DropsProductsResolver {
   findOne(@Args('id') id: string) {
     return this.dropsProductsService.findOne(id);
   }
+
+  @Query(() => DropsProduct)
+  async createJSONL() {
+    return await this.dropsProductsService.createJSONL('');
+  }
+
+  @Mutation(() => DropsProduct)
+  async createCollectionShopify(
+    @Args('storeId') storeId: string,
+    @Args('collectionObject') collectionObject: CollectionObject,
+  ) {
+    return await this.dropsProductsService.createCollectionShopify(
+      storeId,
+      collectionObject,
+    );
+  }
+
   @Public()
   @Mutation(() => DropsProduct)
   async updateDropsProducts(

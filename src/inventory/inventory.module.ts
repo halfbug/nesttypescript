@@ -21,6 +21,9 @@ import { AppLoggerModule } from 'src/applogger/applogger.module';
 import { SearchIndexingRefreshEvent } from './events/searchIndexing-refresh.event';
 import { SearchIndexingListener } from './listeners/searchIndexing-refresh.listner';
 import { DropsCategoryModule } from 'src/drops-category/drops-category.module';
+import { SyncProductsEvent } from './events/sync.products.event';
+import { SyncProductsListner } from './listeners/sync.products.listner';
+import { DropsProductsModule } from 'src/drops-products/drops-products.module';
 
 @Module({
   imports: [
@@ -28,6 +31,7 @@ import { DropsCategoryModule } from 'src/drops-category/drops-category.module';
     DefaultColumnsService,
     HttpModule,
     DropsCategoryModule,
+    DropsProductsModule,
     forwardRef(() => StoresModule),
     forwardRef(() => ShopifyModule),
     forwardRef(() => AppLoggerModule),
@@ -47,6 +51,8 @@ import { DropsCategoryModule } from 'src/drops-category/drops-category.module';
     ProductOutofstockEvent,
     SyncCollectionCron,
     InventoryDoneEvent,
+    SyncProductsEvent,
+    SyncProductsListner,
   ],
   exports: [
     InventoryService,

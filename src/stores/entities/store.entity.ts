@@ -227,6 +227,9 @@ export class Drops {
 
   @Field(() => [CartRewards], { nullable: 'itemsAndList' })
   cartRewards?: CartRewards;
+
+  @Field(() => String)
+  collectionId?: string;
 }
 @ObjectType('Store')
 export class Store {

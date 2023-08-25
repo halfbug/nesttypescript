@@ -1005,8 +1005,7 @@ export class WebhooksController {
       const bulkData = req.body;
       const storeData = await this.storesService.findOneByName(shop);
       if (storeData?.drops && storeData?.drops?.status == 'Active') {
-        const { session, id, collectionsToUpdate } =
-          await this.storesService.findOne(shop);
+        const { session, id } = await this.storesService.findOne(shop);
 
         const client = await this.shopifyService.client(session);
 
@@ -1019,6 +1018,7 @@ export class WebhooksController {
         const log = await this.appLoggerService.findLatestByCotext([
           'COLLECTIONTOUPDATBULK',
           'PRODUCT_VENDOR_TO_UPDATE_BULK',
+          'SYNC_PRODUCTS_TO_MERCHANT_STORE',
         ]);
 
         const bulkOperationId = log.message?.split('-')[1]?.trim();
@@ -1051,6 +1051,14 @@ export class WebhooksController {
 
           case 'PRODUCT_VENDOR_TO_UPDATE_BULK': {
             this.updatingProductVendor(responseFromURL);
+            break;
+          }
+
+          case 'SYNC_PRODUCTS_TO_MERCHANT_STORE': {
+            this.dropsProductsService.updateMerchantProductIds(
+              responseFromURL,
+              id,
+            );
             break;
           }
         }

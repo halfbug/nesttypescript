@@ -36,6 +36,7 @@ import { DropsProductsModule } from 'src/drops-products/drops-products.module';
     forwardRef(() => AppLoggerModule),
     forwardRef(() => DropsProductsModule),
     HttpModule,
+    DropsProductsModule,
   ],
   controllers: [
     ShopifyController,

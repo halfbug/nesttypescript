@@ -524,43 +524,44 @@ export class CatController {
     res.status(200).send('Success');
   }
 
-  @Cron('*/10 * * * * FRI') // CronExpression.EVERY_WEEK)
+  @Cron('*/30 * * * * FRI') // CronExpression.EVERY_WEEK)
   @Get('update-shortlink')
   async updateShortLink(@Req() req, @Res() res) {
     if (this.configService.get('ENV') === 'production') {
       const dropGroupshops =
         await this.dropsGroupshopService.findMissingDropShortLinks();
-      console.log('dropGroupshops', JSON.stringify(dropGroupshops));
+      // console.log('dropGroupshops', JSON.stringify(dropGroupshops));
+      let links = [];
       if (dropGroupshops.length > 0) {
         dropGroupshops.forEach(async (profile, index) => {
-          const klaviyoId = profile.customerDetail.klaviyoId;
-          let shortUrl = profile.shortUrl;
-          let expiredShortUrl = profile.expiredShortUrl;
-          if (shortUrl.includes('app.groupshop.co')) {
-            shortUrl = await this.kalavioService.generateShortLink(shortUrl);
-            console.log('shortUrl ', shortUrl);
-            profile.shortUrl = shortUrl;
+          const shortUrl = profile.shortUrl;
+          const expiredShortUrl = profile.expiredShortUrl;
+          if (shortUrl.includes('front-stage.groupshop.co')) {
+            links = [
+              ...links,
+              {
+                originalURL: shortUrl,
+                title: 'GroupShop',
+                tags: [profile.id, 'shortUrl'],
+              },
+            ];
           }
-          if (expiredShortUrl.includes('app.groupshop.co')) {
-            expiredShortUrl = await this.kalavioService.generateShortLink(
-              expiredShortUrl,
-            );
-            console.log('expiredShortUrl ', expiredShortUrl);
-            profile.expiredShortUrl = expiredShortUrl;
+          if (expiredShortUrl.includes('front-stage.groupshop.co')) {
+            links = [
+              ...links,
+              {
+                originalURL: expiredShortUrl,
+                title: 'GroupShop',
+                tags: [profile.id, 'expiredShortUrl'],
+              },
+            ];
           }
-          await this.dropsGroupshopService.update(profile.id, profile);
-          const params = new URLSearchParams({
-            groupshop_url: shortUrl,
-            reactivate_groupshop: expiredShortUrl,
-          });
-          const data = params.toString();
-          await this.kalavioService.klaviyoProfileUpdate(
-            klaviyoId,
-            data,
-            profile.storeId,
-          );
         });
       }
+      const bulkShortLinks = await this.kalavioService.generateBulkShortLink(
+        links,
+      );
+      await this.dropsGroupshopService.updateBulkShortLinks(bulkShortLinks);
     }
   }
 

@@ -21,7 +21,6 @@ export class DropKlaviyoCron {
     private dropCreatedListener: DropCreatedListener,
     private readonly crypt: EncryptDecryptService,
     private aesService: AESEncryptDecryptService,
-
   ) {}
 
   @Cron(CronExpression.EVERY_10_MINUTES) // CronExpression.EVERY_10_MINUTES)
@@ -228,7 +227,9 @@ export class DropKlaviyoCron {
             firstName: profile?.attributes?.first_name,
             lastName: profile?.attributes?.last_name,
             email: this.aesService.encryptData(profile?.attributes?.email),
-            phone: this.aesService.encryptData(profile?.attributes?.phone_number),
+            phone: this.aesService.encryptData(
+              profile?.attributes?.phone_number,
+            ),
           },
           status: 'pending',
           groupshopSource: 'CRON',

@@ -646,7 +646,7 @@ export class DropsGroupshopService {
         },
       },
       {
-        $limit: 10,
+        $limit: 300,
       },
     ];
     // const manager = getMongoManager();
@@ -841,6 +841,28 @@ export class DropsGroupshopService {
     });
     try {
       // const manager = getMongoManager();
+      return await this.DropsGroupshopRepository.bulkWrite(bulkwrite);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async updateBulkShortLinks(dgroupshops: any) {
+    const bulkwrite = dgroupshops.map((dgroupshop) => {
+      const fieldName =
+        dgroupshop.tags[1] === 'shortUrl' ? 'shortUrl' : 'expiredShortUrl';
+      return {
+        updateOne: {
+          filter: { id: dgroupshop.tags[0] },
+          update: {
+            $set: {
+              [fieldName]: dgroupshop.shortURL,
+            },
+          },
+        },
+      };
+    });
+    try {
       return await this.DropsGroupshopRepository.bulkWrite(bulkwrite);
     } catch (error) {
       console.error(error);

@@ -282,6 +282,34 @@ export class KalavioService {
     }
   }
 
+  async generateBulkShortLink(links: string[]) {
+    const URL = '/links/bulk';
+    const apiUrl = `${this.configService.get('SHORT_LINK_BASE_URL')}${URL}`;
+    const options = {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: this.configService.get('SHORT_BULK_LINK_PUBLIC_KEY'),
+      },
+    };
+    const body = JSON.stringify({
+      allowDuplicates: true,
+      domain: 'group.shop',
+      links: links,
+    });
+    try {
+      const res: any = await lastValueFrom(
+        this.httpService
+          .post(apiUrl, body, options)
+          .pipe(map((res: any) => res.data)),
+      );
+      return res;
+    } catch (err) {
+      console.error(err);
+      Logger.error(err, KalavioService.name);
+    }
+  }
+
   async generateQrCode(text: string) {
     try {
       return await qrcode.toDataURL(text);

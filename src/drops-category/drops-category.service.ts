@@ -500,6 +500,11 @@ export class DropsCategoryService {
               },
             },
             {
+              $sort: {
+                _id: -1,
+              },
+            },
+            {
               $limit: 10,
             },
           ],

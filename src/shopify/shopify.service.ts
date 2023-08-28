@@ -957,7 +957,7 @@ export class ShopifyService {
       });
       return locations;
     } catch (err) {
-      console.log(err.response.errors);
+      console.log(JSON.stringify(err));
       Logger.error(err, ShopifyService.name);
     }
   }

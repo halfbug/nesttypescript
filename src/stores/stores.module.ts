@@ -17,6 +17,8 @@ import { ShopifyModule } from 'src/shopify/shopify.module';
 import { GsCommonModule } from 'src/gs-common/gs-common.module';
 import { StoreUpdatePlanCron } from './store.cron';
 import { DropsGroupshopModule } from 'src/drops-groupshop/drops-groupshop.module';
+import { SyncProductsEvent } from 'src/inventory/events/sync.products.event';
+import { DropsProductsModule } from 'src/drops-products/drops-products.module';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { DropsGroupshopModule } from 'src/drops-groupshop/drops-groupshop.module
     ShopifyModule,
     InventoryModule,
     forwardRef(() => DropsGroupshopModule),
+    DropsProductsModule,
     GsCommonModule,
   ],
   providers: [
@@ -38,6 +41,7 @@ import { DropsGroupshopModule } from 'src/drops-groupshop/drops-groupshop.module
     StoreSavedEvent,
     UninstallService,
     StoreUpdatePlanCron,
+    SyncProductsEvent,
   ],
   exports: [StoresService, AddResourceEvent, StoreSavedEvent, UninstallService],
 })

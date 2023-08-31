@@ -59,46 +59,6 @@ export class DropsProductsService {
           'DROPS_PRODUCTS',
           true,
         );
-
-        await this.createCollectionShopify(storeId, {
-          title: shop,
-          description: shop,
-        })
-          .then((res) => {
-            const collectionId =
-              res['body']['data']['collectionCreate']['collection']['id'];
-            Logger.log(
-              `${shop} collection created to Shopify for store: ${storeId} with collection id: ${collectionId}`,
-              'MERCHANT_COLLECTION_CREATION',
-              true,
-            );
-            this.storesService
-              .updateStore(storeId, {
-                id: storeId,
-                drops: { collectionId: collectionId },
-              })
-              .then(() => {
-                Logger.log(
-                  `collectionId ${collectionId} saved in store (DB): ${storeId} & ${shop} `,
-                  'MERCHANT_COLLECTION_CREATION',
-                  true,
-                );
-              })
-              .catch((err) => {
-                Logger.log(
-                  `collection save failed in store (DB): ${storeId} & ${shop}, ERR: ${err}`,
-                  'MERCHANT_COLLECTION_CREATION',
-                  true,
-                );
-              });
-          })
-          .catch((err) => {
-            Logger.error(
-              `${shop} collection creation failed to Shopify for store: ${storeId}, ERR: ${err}`,
-              'MERCHANT_COLLECTION_CREATION',
-              true,
-            );
-          });
       }
       return res;
     } catch (err) {

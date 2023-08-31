@@ -7,17 +7,23 @@ import {
 } from './entities/store.entity';
 import { CreateStoreInput } from './dto/create-store.input';
 import { UpdateStoreInput } from './dto/update-store.input';
-import { UseGuards } from '@nestjs/common';
+import { Logger, UseGuards } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { AuthEntity } from 'src/auth/entities/auth.entity';
 import { AuthDecorator } from 'src/auth/auth.decorator';
 import { Public } from 'src/auth/public.decorator';
 import { DiscountCode } from 'src/drops-groupshop/entities/groupshop.entity';
+import { SyncProductsEvent } from 'src/inventory/events/sync.products.event';
+import { DropsProductsService } from 'src/drops-products/drops-products.service';
 
 @Resolver(() => Store)
 @UseGuards(AuthGuard)
 export class StoresResolver {
-  constructor(private readonly storesService: StoresService) {}
+  constructor(
+    private readonly storesService: StoresService,
+    private readonly ProductSyncEvent: SyncProductsEvent,
+    private readonly DropsProductsService: DropsProductsService,
+  ) {}
 
   @Mutation(() => Store)
   createStore(@Args('createStoreInput') createStoreInput: CreateStoreInput) {
@@ -83,10 +89,60 @@ export class StoresResolver {
     @Args('updateStoreInput') updateStoreInput: UpdateStoreInput,
   ) {
     console.log('im in updateStoreSimple');
-    return this.storesService.updateStore(
+    const res = this.storesService.updateStore(
       updateStoreInput.id,
       updateStoreInput,
     );
+
+    if (updateStoreInput.installationStep === null) {
+      const storeId = updateStoreInput.id;
+      const shop = updateStoreInput.shop;
+
+      this.DropsProductsService.createCollectionShopify(storeId, {
+        title: shop,
+        description: shop,
+      })
+        .then((res) => {
+          const collectionId =
+            res['body']['data']['collectionCreate']['collection']['id'];
+          Logger.log(
+            `${shop} collection created to Shopify for store: ${storeId} with collection id: ${collectionId}`,
+            'MERCHANT_COLLECTION_CREATION',
+            true,
+          );
+          this.storesService
+            .updateStore(storeId, {
+              id: storeId,
+              drops: { collectionId: collectionId },
+            })
+            .then(() => {
+              Logger.log(
+                `collectionId ${collectionId} saved in store (DB): ${storeId} & ${shop} `,
+                'MERCHANT_COLLECTION_CREATION',
+                true,
+              );
+
+              this.ProductSyncEvent.storeId = updateStoreInput.id;
+              this.ProductSyncEvent.emit();
+            })
+            .catch((err) => {
+              Logger.log(
+                `collection save failed in store (DB): ${storeId} & ${shop}, ERR: ${err}`,
+                'MERCHANT_COLLECTION_CREATION',
+                true,
+              );
+            });
+        })
+        .catch((err) => {
+          Logger.error(
+            `${shop} collection creation failed to Shopify for store: ${storeId}, ERR: ${err}`,
+            'MERCHANT_COLLECTION_CREATION',
+            true,
+          );
+        });
+    }
+
+    return res;
   }
 
   // @Mutation(() => Store)

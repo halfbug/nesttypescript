@@ -1327,6 +1327,7 @@ export class StoresService {
           sections: {
             $push: {
               name: '$sections.name',
+              mergedIds: '$sections.mergedIds',
               shopifyId: '$sections.shopifyId',
               type: '$sections.type',
               products: '$sections.products',

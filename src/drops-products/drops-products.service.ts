@@ -211,7 +211,17 @@ export class DropsProductsService {
     return res[0];
   }
 
-  async createJSONL(storeId: string) {
+  async createJSONL(storeId: string, type = 'BULK_PRODUCTS_CREATION') {
+    let queryMutation;
+
+    if (type === 'BULK_PRODUCTS_CREATION') {
+      queryMutation =
+        'mutation call($input: ProductInput!) { productCreate(input: $input) { product {id title  metafield(key: "merchant_id") { id value } variants(first: 10) {edges {node {id title inventoryQuantity metafield(key: "merchant_variant_id") { id value }}}}} userErrors { message field } } }';
+    } else {
+      queryMutation =
+        'mutation call($input: ProductInput!) { productUpdate(input: $input) { product {id title  metafield(key: "merchant_id") { id value } variants(first: 10) {edges {node {id title inventoryQuantity metafield(key: "merchant_variant_id") { id value }}}}} userErrors { message field } } }';
+    }
+
     const arr = [];
     const merchantProducts: any = await this.findProductsByStoreId(storeId);
     const store = await this.storesService.findOneById(storeId);
@@ -221,7 +231,7 @@ export class DropsProductsService {
           collectionsToJoin: [store.drops.collectionId],
           collectionsToLeave: [],
           descriptionHtml: ele.description,
-          id: ele.id,
+          id: type === 'BULK_PRODUCTS_CREATION' ? ele.id : ele.d_product_id,
           images: ele.images,
           options: ele.options.map((item) => item.name),
           published: true,
@@ -237,32 +247,40 @@ export class DropsProductsService {
             },
           ],
           variants: ele.variants.map((item) => {
-            return {
-              compareAtPrice: item.compareAtPrice,
-              id: item.id,
-              imageSrc: item?.image?.src ?? '',
-              inventoryManagement: item.inventoryManagement?.toUpperCase(),
-              inventoryPolicy: item.inventoryPolicy,
-              // inventoryQuantities: [
-              //   {
-              //     availableQuantity: 1,
-              //     locationId: '',
-              //   },
-              // ],
-              options: item.selectedOptions.map((item) => item.value),
-              position: 1,
-              price: item.price,
-              productId: ele.id,
-              title: item.title,
-              // mediaSrc: item?.image?.src ? [item?.image?.src] : [],
-              metafields: [
-                {
-                  key: 'merchant_variant_id',
-                  type: 'single_line_text_field',
-                  value: item.id,
-                },
-              ],
-            };
+            const obj: any = {};
+
+            if (type === 'BULK_PRODUCTS_CREATION') {
+              obj.compareAtPrice = item.compareAtPrice;
+              obj.price = item.price;
+              obj.id = item.id;
+            } else {
+              obj.id = item.d_variant_id;
+            }
+
+            obj.imageSrc = item?.image?.src ?? '';
+            obj.inventoryManagement = item.inventoryManagement?.toUpperCase();
+            obj.inventoryPolicy = item.inventoryPolicy;
+            // obj.inventoryQuantities = [
+            //   {
+            //     availableQuantity: 1,
+            //     locationId: '',
+            //   },
+            // ],
+            obj.options = item.selectedOptions.map((item) => item.value);
+            obj.position = 1;
+            obj.productId =
+              type === 'BULK_PRODUCTS_CREATION' ? ele.id : ele.d_product_id;
+            obj.title = item.title;
+            // obj.mediaSrc = item?.image?.src ? [item?.image?.src] : [],
+            obj.metafields = [
+              {
+                key: 'merchant_variant_id',
+                type: 'single_line_text_field',
+                value: item.id,
+              },
+            ];
+
+            return obj;
           }),
           vendor: ele.vendor,
         },
@@ -288,7 +306,7 @@ export class DropsProductsService {
 
     Logger.log(
       `${fileName} JSONL file created for store: ${storeId}`,
-      'BULK_PRODUCTS_CREATION',
+      type,
       true,
     );
 
@@ -350,7 +368,7 @@ export class DropsProductsService {
                 next: () => {
                   Logger.log(
                     `${fileName} JSONL file uploaded for store: ${storeId}`,
-                    'BULK_PRODUCTS_CREATION',
+                    type,
                     true,
                   );
 
@@ -377,8 +395,7 @@ export class DropsProductsService {
                         }
                       }`,
                         variables: {
-                          mutation:
-                            'mutation call($input: ProductInput!) { productCreate(input: $input) { product {id title  metafield(key: "merchant_id") { id value } variants(first: 10) {edges {node {id title inventoryQuantity metafield(key: "merchant_variant_id") { id value }}}}} userErrors { message field } } }',
+                          mutation: queryMutation,
                           stagedUploadPath: key,
                         },
                       },
@@ -386,7 +403,7 @@ export class DropsProductsService {
                     .then((res) => {
                       Logger.log(
                         `${merchantProducts.products.length} products created to Shopify for store: ${storeId}`,
-                        'BULK_PRODUCTS_CREATION',
+                        type,
                         true,
                       );
                       const bulkOperationId =
